@@ -1,0 +1,273 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>💰 BetBase — Crypto Escrow Bets (Pro)</title>
+  <style>
+  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2a44;--accent:#22c55e;}
+  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#0b1220,#0a0f1a);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text)}
+  .container{max-width:1200px;margin:12px auto;padding:0 12px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  h1{font-size:24px;margin:0} .brand{display:flex;align-items:center;gap:10px} .brand span.logo{font-size:26px} .tag{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .grid{display:grid;gap:10px} @media(min-width:900px){.grid-2{grid-template-columns:1fr 1fr}} @media(min-width:1200px){.grid-2{grid-template-columns:2fr 2fr 1.5fr}}
+  .label{font-size:13px;color:var(--muted)}
+  .input{width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;background:#0b1324;color:var(--text)}
+  .btn{padding:8px 12px;border:1px solid var(--accent);background:#0b1324;border-radius:12px;color:#d1fae5;cursor:pointer;transition:transform .06s ease, box-shadow .12s ease} .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  .btn:disabled{opacity:.5;cursor:not-allowed} .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .small{font-size:12px;color:var(--muted)} .badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted)}
+  .sep{height:1px;background:var(--border);margin:12px 0} .kv{display:flex;flex-wrap:wrap;gap:10px;align-items:center} .kv>div{display:flex;gap:6px;align-items:center}
+  #qrBox{border:1px dashed var(--border);border-radius:10px;padding:8px;background:#0b1324;display:inline-block}
+  .primary{background:#16a34a;border-color:#16a34a;color:#052e16}
+  .primary:hover{filter:brightness(1.05)}
+  .stickybar{position:sticky;bottom:0;z-index:50;background:rgba(11,19,36,.9);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;margin-top:10px;padding:10px}
+  .stickygrid{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .chip{background:#0b1324;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;color:#cbd5e1}
+  .pill{background:#052e16;border:1px solid #16a34a;color:#86efac;padding:3px 8px;border-radius:999px;font-size:11px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand"><span class="logo">💰</span><h1>BetBase — Crypto Escrow Bets</h1></div>
+      <div class="pill">Skill bets • instant escrow • fee snapshot</div>
+    </div>
+    <p class="small">Create a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee‑free.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Create Bet</h3>
+        <label class="label">Stake (ETH)</label>
+        <div class="row"><div><label class="label">Stake (ETH)</label><input id="stake" class="input" type="number" step="0.0001" value="0.05" style="width:140px"/></div><div><label class="label">Stake (USD)</label><input id="stakeUsdInput" class="input" type="number" step="1" value="175" style="width:140px"/></div><div class="row" style="gap:6px;align-items:flex-end"><button id="stakeMinus" class="btn" title="Decrease">−</button><button id="stakePlus" class="btn" title="Increase">+</button></div></div><div class="row small"><span style="opacity:.9">Set by USD:</span><button class="btn" id="q1">$1</button><button class="btn" id="q5">$5</button><button class="btn" id="q20">$20</button><span style="margin-left:8px">Custom</span><input id="qCustomUsd" class="input" type="number" min="0" step="1" value="10" style="width:100px"/></div>
+        <div id="stakeUsd" class="small">≈ $0.00</div>
+
+        <div class="sep"></div>
+        <label class="label">Referee (optional)</label>
+        <input id="referee" class="input" placeholder="Referee address (0x...) or leave blank"/>
+        <div class="small">
+          <strong>Referee</strong> = a trusted third person who can decide the winner <em>after the deadline</em> if players don’t agree.
+          Blank = both players must confirm the same winner.
+        </div>
+
+        <div class="sep"></div>
+        <label class="label">Deadline (minutes)</label>
+        <input id="deadline" class="input" type="number" value="30"/>
+
+        <div style="height:8px"></div>
+        <div class="row"><button id="btnCreate" class="btn primary">Create & Fund</button><button id="btnReset" class="btn">Reset demo</button></div>
+
+        <div style="margin-top:10px" class="small">
+          <div>Gas est: ~<span id="gasLimit">80000</span> gas @ <span id="gasGweiVal">5</span> gwei ≈ <span id="gasEth">0</span> ETH (<span id="gasUsd">$0.00</span>)</div>
+          <div class="row" style="margin-top:6px">
+            <label class="label">ETH/USD</label><input id="ethUsd" type="number" class="input" style="width:120px" value="3500"/>
+            <label class="label">Gas (gwei)</label><input id="gasGwei" type="number" class="input" style="width:120px" value="5"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="gap:10px">
+      <div class="card">
+        <h3>Join / Resolve</h3>
+        <div class="small" id="resolveNote" style="margin-top:4px;opacity:.9">Waiting for both votes…</div>
+        <div class="row" style="margin-bottom:6px">
+          <button id="btnJoin" class="btn">Join & Match Stake</button>
+          <button id="btnRefund" class="btn">Request Refund</button>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:10px">
+          <div class="card" style="padding:10px">
+            <div class="small">Creator vote</div>
+            <div class="row" style="margin-top:6px">
+              <button id="creatorWon" class="btn">Creator won</button>
+              <button id="creatorSaysOpponent" class="btn">Opponent won</button>
+            </div>
+          </div>
+          <div class="card" style="padding:10px">
+            <div class="small">Opponent vote</div>
+            <div class="row" style="margin-top:6px">
+              <button id="opponentSaysCreator" class="btn">Creator won</button>
+              <button id="opponentWon" class="btn">Opponent won</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Bet Ideas</h3>
+        <div class="small">Tap shuffle to get a quick, fair challenge idea you can use IRL.</div>
+        <div class="row" style="margin-top:6px">
+          <input id="ideaBox" class="input" readonly value="Make a 3-point shot from the top of the key"/>
+          <button id="ideaShuffle" class="btn">Shuffle</button>
+        </div>
+        <div class="small" style="margin-top:6px">Examples: darts double-out, cornhole 2-in-a-row, bottle flip 3/5, crossbar challenge, closest-to-the-pin (mini golf), pool: bank shot in 2 tries.</div>
+      </div>
+      </div>
+<div class="card" style="margin-top:10px">
+      <h3>Share / QR</h3>
+      <div class="small">Show this to your opponent so they can open the exact bet.</div>
+      <div class="row" style="margin-top:6px">
+        <input id="betId" class="input" style="width:140px" value="1"/>
+        <input id="shareUrl" class="input" readonly/>
+        <button id="copyBtn" class="btn">Copy link</button>
+      </div>
+      <div id="qrBox" style="margin-left:auto"></div>
+    </div>
+
+    <div class="card" style="margin-top:10px">
+      <div class="kv">
+        <div><span class="small">State:</span><span class="badge" id="state">Created</span></div>
+        <div><span class="small">Fee:</span><span class="badge"><span id="feePct">2.5</span>% (locked)</span></div>
+        <div><span class="small">Pot:</span><span class="badge"><span id="potEth">0.0000</span> ETH (<span id="potUsd">$0.00</span>)</span></div>
+        <div><span class="small">Winner gets:</span><span class="badge"><span id="winnerEth">0.0000</span> ETH (<span id="winnerUsd">$0.00</span>)</span></div>
+      </div>
+      <p class="small" style="margin-top:8px">
+        Refunds are fee‑free. Each user pays their own (simulated) network gas for their own transaction.
+      </p>
+    </div>
+    <div class="stickybar">    <div class="stickygrid">      <div class="chip">State: <strong id="sbState">Created</strong></div>      <div class="chip">Fee: <strong><span id="sbFee">2.5</span>%</strong></div>      <div class="chip">Pot: <strong><span id="sbPotEth">0.0000</span> ETH</strong> (<span id="sbPotUsd">$0.00</span>)</div>      <div class="chip">Winner gets: <strong><span id="sbWinEth">0.0000</span> ETH</strong> (<span id="sbWinUsd">$0.00</span>)</div>    </div>  </div>
+</div>
+
+  <script>
+  
+/*! QRCode.js v1.0.0 (MIT) | https://github.com/davidshimjs/qrcodejs */
+var QRCode;(function(){function l(a){this.mode=c.MODE_8BIT_BYTE;this.data=a}function n(a,b){this.typeNumber=a;this.errorCorrectLevel=b;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}function p(a,b){if(void 0==a.length)throw Error(a.length+"/"+b);for(var e=0;e<a.length&&0==a[e];)e++;this.num=Array(a.length-e+b);for(var d=0;d<a.length-e;d++)this.num[d]=a[d+e]}function q(a,b){this.totalCount=a;this.dataCount=b}function r(){this.buffer=[];this.length=0}
+r.prototype={get:function(a){return 1==(this.buffer[Math.floor(a/8)]>>>7-a%8&1)},put:function(a,b){for(var e=0;e<b;e++)this.putBit(1==(a>>>b-e-1&1))},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0);a&&(this.buffer[b]|=128>>>this.length%8);this.length++}};l.prototype={getLength:function(){return this.data.length},write:function(a){for(var b=0;b<this.data.length;b++)a.put(this.data.charCodeAt(b),8)}};n.prototype={addData:function(a){this.dataList.push(new l(a));
+this.dataCache=null},isDark:function(a,b){if(null==this.modules||a<0||this.moduleCount<=a||b<0||this.moduleCount<=b)throw Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){if(this.typeNumber<1){for(var a=1;40>a;a++){for(var b=q.getRSBlocks(a,this.errorCorrectLevel),e=new r,d=0;d<b.length;d++)e.put(4,4),e.put(this.dataList[0].getLength(),8),this.dataList[0].write(e);if(e.length<=8*b[0].dataCount)break}this.typeNumber=a}this.makeImpl(!1,
+this.getBestMaskPattern())},makeImpl:function(a,b){this.moduleCount=4*this.typeNumber+17;this.modules=Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++){this.modules[e]=Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++)this.modules[e][d]=null}this.setupPositionProbePattern(0,0);this.setupPositionProbePattern(this.moduleCount-7,0);this.setupPositionProbePattern(0,this.moduleCount-7);this.setupPositionAdjustPattern();this.setupTimingPattern();this.setupTypeInfo(a,b);1<=this.typeNumber&&
+this.setupTypeNumber(a);null==this.dataCache&&(this.dataCache=n.createData(this.typeNumber,this.errorCorrectLevel,this.dataList));this.mapData(this.dataCache,b)},setupPositionProbePattern:function(a,b){for(var e=-1;7>=e;e++)if(!(-1>=a+e||this.moduleCount<=a+e))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+e][b+d]=0<=e&&6>=e&&(0==d||6==d)||0<=d&&6>=d&&(0==e||6==e)||2<=e&&4>=e&&2<=d&&4>=d)},getBestMaskPattern:function(){for(var a=0,b=0,e=0;8>e;e++){this.makeImpl(!0,e);var d=q.getLostPoint(this);
+if(0==e||a>d)a=d,b=e}return b},createMovieClip:function(a,b,e){a=a.createEmptyMovieClip(b,e);this.make();for(b=0;b<this.modules.length;b++)for(var d=1*b,c=0;c<this.modules[b].length;c++){var f=1*c;this.modules[b][c]&&(a.beginFill(0,100),a.moveTo(f,d),a.lineTo(f+1,d),a.lineTo(f+1,d+1),a.lineTo(f,d+1),a.endFill())}return a},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2),null==this.modules[6][a]&&(this.modules[6][a]=0==a%2)},
+setupPositionAdjustPattern:function(){for(var a=q.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var e=0;e<a.length;e++){var d=a[b],c=a[e];if(null==this.modules[d][c])for(var f=-2;2>=f;f++)for(var g=-2;2>=g;g++)this.modules[d+f][c+g]=-2==f||2==f||-2==g||2==g||0==f&&0==g}},setupTypeNumber:function(a){for(var b=q.getBCHTypeNumber(this.typeNumber),e=0;18>e;e++)this.modules[Math.floor(e/3)][e%3+this.moduleCount-8-3]=!a&&1==(b>>>e&1);for(e=0;18>e;e++)this.modules[e%3+this.moduleCount-8-3][Math.floor(e/
+3)]=!a&&1==(b>>>e&1)},setupTypeInfo:function(a,b){for(var e=q.getBCHTypeInfo(this.errorCorrectLevel<<3|b),d=0;15>d;d++)this.modules[d<6?d:d+1][8]=!a&&1==(e>>>d&1);for(d=0;15>d;d++)this.modules[8][d<8?d+1:d+1+1]=!a&&1==(e>>>d&1);this.modules[this.moduleCount-8][8]=!a;for(d=0;7>d;d++)this.modules[8][this.moduleCount-7+d]=!a&&1==(e>>>d&1);for(d=0;8>d;d++)this.modules[this.moduleCount-8+d][8]=!a&&1==(e>>>d&1)},mapData:function(a,b){for(var e=-1,d=this.moduleCount-1,c=7,f=0,g=this.moduleCount-1;0<g;g-=2){6==g&&
+g--;for(;;){for(var k=0;2>k;k++)if(null==this.modules[d][g-k]){var h=!1;f<a.length&&(h=1==(a[f]>>>c&1));q.getMask(b,d,g-k)&&(h=!h);this.modules[d][g-k]=h}if((d+=e)<0||this.moduleCount<=d){d-=e;e=-e;break}}}},n.PAD0=236;n.PAD1=17;n.createData=function(a,b,e){for(var d=q.getRSBlocks(a,b),c=new r,f=0;f<e.length;f++)c.put(4,4),c.put(e[f].getLength(),8),e[f].write(c);for(f=0;f<d.length;f++){var g=d[f].dataCount;for(e=0;e<g&&!(c.length<=8*g);e++);if(e!=g)throw Error("code length overflow. ("+c.length+">"+8*g+")");
+}for(;c.length%8!=0;)c.putBit(!1);for(;!(c.length>=8* d[0].dataCount);){c.put(n.PAD0,8);if(c.length>=8*d[0].dataCount)break;c.put(n.PAD1,8)}return n.createBytes(c,d)};n.createBytes=function(a,b){for(var e=0,d=0,c=0,f=0,g=Array(b.length),k=Array(b.length),h=0;h<b.length;h++){var m=b[h].dataCount,l=b[h].totalCount-m;d=Math.max(d,m);c=Math.max(c,l);g[h]=Array(m);for(var t=0;t<g[h].length;t++)g[h][t]=255&a.buffer[t+e];e+=m;h=b[h];k[h]=n.getErrorCorrectPolynomial(l).mod(new p(g[h],0))}for(h=t=0;h<b.length;h++)t+=b[h].totalCount;
+h=Array(t);for(e=m=0;e<b.length;e++)for(t=0;t<g[e].length;t++)h[m++]=g[e][t];for(e=0;e<b.length;e++)for(t=0;t<k[e].num.length;t++)h[m++]=k[e].num[t];return h};q.PATTERN_POSITION_TABLE=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72],[6,26,50,74],[6,30,54,78],[6,28,54,80],[6,32,58,84],[6,30,58,86]];q.getPatternPosition=function(a){return q.PATTERN_POSITION_TABLE[a-1]};
+q.getMask=function(a,b,e){switch(a){case 0:return 0==(b+e)%2;case 1:return 0==b%2;case 2:return 0==e%3;case 3:return 0==(b+e)%3;case 4:return 0==(Math.floor(b/2)+Math.floor(e/3))%2;case 5:return 0==b*e%2+ b*e%3;case 6:return 0==(b*e%2+b*e%3)%2;case 7:return 0==(b*e%3+ (b+e)%2)%2;default:throw Error("bad maskPattern:"+a);}};q.getErrorCorrectPolynomial=function(a){for(var b=new p([1],0),e=0;e<a;e++)b=b.multiply(new p([1,q.gexp(e)],0));return b};q.glog=function(a){if(1>a)throw Error("glog("+a+")");
+return q.LOG_TABLE[a]};q.gexp=function(a){for(;0>a;)a+=255;for(;256<=a;)a-=255;return q.EXP_TABLE[a]};q.getLostPoint=function(a){for(var b=a.getModuleCount(),e=0,d=0;d<b;d++)for(var c=0;c<b;c++){for(var f=0,g=a.isDark(d,c),k=-1;1>=k;k++)if(!(0>d+k||b<=d+k))for(var h=-1;1>=h;h++)0>c+h||b<=c+h||0==k&&0==h||g==a.isDark(d+k,c+h)&&f++;5<f&&(e+=3+f-5)}for(d=0;d<b-1;d++)for(c=0;c<b-1;c++)a.isDark(d,c)&&a.isDark(d+1,c)&&a.isDark(d,c+1)&&a.isDark(d+1,c+1)||a.isDark(d,c)||a.isDark(d+1,c)||a.isDark(d,c+1)||
+a.isDark(d+1,c+1)||(e+=3);for(d=0;d<b;d++)for(c=0;c<b;c++)a.isDark(d,c)&&e++;return e+Math.abs(100*e/b/b-50)/5};q.EC_LEVEL_L=1;q.EC_LEVEL_M=0;q.EC_LEVEL_Q=3;q.EC_LEVEL_H=2;q.EXP_TABLE=Array(256);
+q.LOG_TABLE=Array(256);for(var u=0;8>u;u++)q.EXP_TABLE[u]=1<<u;for(u=8;256>u;u++)q.EXP_TABLE[u]=q.EXP_TABLE[u-4]^q.EXP_TABLE[u-5]^q.EXP_TABLE[u-6]^q.EXP_TABLE[u-8];for(u=0;255>u;u++)q.LOG_TABLE[q.EXP_TABLE[u]]=u;p.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=Array(this.getLength()+a.getLength()-1),e=0;e<this.getLength();e++)for(var d=0;d<a.getLength();d++)b[e+d]^=q.gexp(q.glog(this.num[e])+q.glog(a.num[d]));return new p(b,
+0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=q.glog(this.num[0])-q.glog(a.num[0]),e=Array(this.getLength()),d=0;d<this.getLength();d++)e[d]=this.num[d];for(d=0;d<a.getLength();d++)e[d]^=q.gexp(q.glog(a.num[d])+b);return new p(e,0).mod(a)}};q.getRSBlocks=function(a,b){var e=q.RS_BLOCK_TABLE[4*(a-1)+b];if(void 0==e)throw Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=e.length/3,c=[],f=0;f<d;f++)for(var g=e[3*f+0],k=e[3*f+1],h=e[3*f+2],m=0;m<g;m++)c.push(new q(k,h));
+return c};q.RS_BLOCK_TABLE=[1,26,19,1,26,16,1,26,13,1,26,9,1,44,34,1,44,28,1,44,22,1,44,16,1,70,55,1,70,44,2,35,17,2,35,13,2,35,9,1,100,80,2,50,32,2,50,24,4,25,9,2,50,14,1,134,108,2,67,43,2,33,15,2,33,11,2,33,7,2,86,68,4,43,27,4,43,19,4,43,15,2,86,31,6,43,3,4,101,81,2,101,50,2,101,36,4,50,14,4,101,31,1,122,98,2,61,42,4,31,14,4,31,10,2,62,11,7,45,22,4,91,58,6,36,14,4,91,13,24,45,49,10,46,24,5,45,15,5,45,11,5,45,7,4,57,39,1,80,14,6,58,13,8,43,9,19,26,7,12,11,7,10,7];
+n.stringToBytes=function(a){for(var b=[],e=0;e<a.length;e++){var d=a.charCodeAt(e);128>d?b.push(d):2048>d?(b.push(192|d>>6),b.push(128|63&d)):(b.push(224|d>>12),b.push(128|63&d>>6),b.push(128|63&d))}return b};var c={};c.IMAGE_SIZE=256;c.QuietZone=4;c.stringToBytes=n.stringToBytes;c.createStringToBytes=function(a){var b=function(){return n.stringToBytes(a)};return function(a){return b(a)}};c.createData=function(a,b){var e=new n(-1,b);e.addData(a);e.make();return e};QRCode=function(a,b){this._el=a;this._htOption={width:b&&b.width?b.width:128,height:b&&b.height?b.height:128,correctLevel:q.EC_LEVEL_M,text:b&&b.text?b.text:""};this._oQRCode=null;this._android=-1<this._getAndroid()};QRCode.prototype={_getAndroid:function(){var a=navigator.userAgent.toLowerCase();return-1!=a.indexOf("android")?parseFloat(a.match(/android\s([\d\.]+)/)[1]):0},makeCode:function(a){this._htOption.text=a;this._make()},_make:function(){this._oQRCode=c.createData(this._htOption.text,this._htOption.correctLevel);this._el.innerHTML="";for(var a=document.createElement("canvas"),b=a.getContext("2d"),e=this._htOption.width,d=this._htOption.height,f=this._oQRCode.getModuleCount(),g=Math.floor(e/f),k=Math.floor(d/f),h=0;h<f;h++)for(var m=0;m<f;m++)b.fillStyle=this._oQRCode.isDark(h,m)?"#000":"#fff",b.fillRect(m*g,h*k,g,k);this._el.appendChild(a)}};
+})();
+
+  (function(){
+    const MIN_FEE_BPS = 250; let feeBps = MIN_FEE_BPS;
+    let state = 'Created'; let creatorVote=null, opponentVote=null, winner=null;
+    let stakeEth = 0.05, gasGwei = 5, gasLimit = 80000, ethUsd = 3500;
+
+    const el = (id)=>document.getElementById(id);
+    const fmtUsd = (n)=> '$' + n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+    const fmtEth = (n)=> (Math.round(n*10000)/10000).toFixed(4);
+
+    const stakeInput = el('stake'); const stakeUsdInput = el('stakeUsdInput'); const refereeInput = el('referee'); const deadlineInput = el('deadline');
+    const ethUsdInput = el('ethUsd'); const gasGweiInput = el('gasGwei');
+    const betIdInput = el('betId'); const shareUrlInput = el('shareUrl'); const qrContainer = el('qrBox');
+
+    const stakeUsdOut = el('stakeUsd'); const gasLimitOut = el('gasLimit'); const gasGweiVal = el('gasGweiVal');
+    const gasEthOut = el('gasEth'); const gasUsdOut = el('gasUsd');
+    const stateOut = el('state'); const feePctOut = el('feePct'); const potEthOut = el('potEth'); const potUsdOut = el('potUsd');
+    const winnerEthOut = el('winnerEth'); const winnerUsdOut = el('winnerUsd');
+    const sbState=el('sbState'), sbFee=el('sbFee'), sbPotEth=el('sbPotEth'), sbPotUsd=el('sbPotUsd'), sbWinEth=el('sbWinEth'), sbWinUsd=el('sbWinUsd');
+    const resolveNote = el('resolveNote');
+    const btnReset = el('btnReset');
+
+    const btnCreate = el('btnCreate'); const btnJoin = el('btnJoin'); const btnRefund = el('btnRefund');
+    const creatorWonBtn = el('creatorWon'); const creatorOppBtn = el('creatorSaysOpponent');
+    const oppCreatorBtn = el('opponentSaysCreator'); const oppWonBtn = el('opponentWon'); const copyBtn = el('copyBtn');
+
+    let qrcode = new QRCode(qrContainer, { width: 128, height: 128, text: '' });
+  // Stake steppers
+  const stakeMinus = document.getElementById('stakeMinus');
+  const stakePlus  = document.getElementById('stakePlus');
+  stakeMinus.onclick = ()=>{ const n=parseFloat(stakeInput.value||'0')||0; const v=Math.max(0, (n-0.01)); stakeInput.value = v.toFixed(2); stakeInput.dispatchEvent(new Event('input')); };
+  stakePlus.onclick  = ()=>{ const n=parseFloat(stakeInput.value||'0')||0; const v=n+0.01; stakeInput.value = v.toFixed(2); stakeInput.dispatchEvent(new Event('input')); };
+
+  // Quick USD presets -> convert to ETH based on ethUsd
+  const toEth = (usd)=> (usd / Math.max(1, ethUsd));
+  const q5  = document.getElementById('q5');
+  const q1  = document.getElementById('q1');
+  const qCustomUsd = document.getElementById('qCustomUsd');
+  q1.onclick  = ()=>{ stakeInput.value = toEth(1).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  qCustomUsd.oninput = ()=>{ const usd = parseFloat(qCustomUsd.value||'0'); if (!Number.isFinite(usd) || usd <= 0) return; stakeInput.value = toEth(usd).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+
+  const q10 = document.getElementById('q10');
+  const q20 = document.getElementById('q20');
+  q5.onclick  = ()=>{ stakeInput.value = toEth(5).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  q10.onclick = ()=>{ stakeInput.value = toEth(10).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  q20.onclick = ()=>{ stakeInput.value = toEth(20).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+
+  // Bet ideas
+  const ideas = [
+    "Make a 3-point shot from the top of the key",
+    "Darts: land a double within 3 throws",
+    "Cornhole: 2 bags on board in 3 tosses",
+    "Bottle flip: 3 successes out of 5",
+    "Soccer: hit the crossbar in 3 shots",
+    "Mini golf: closest to the hole from 15ft",
+    "Pool: sink a bank shot in 2 tries",
+    "Ping pong: hit corner target in 3 serves",
+    "Frisbee: 20-yard toss into hoop in 3 tries"
+  ];
+  const ideaBox = document.getElementById('ideaBox');
+  const ideaShuffle = document.getElementById('ideaShuffle');
+  ideaShuffle.onclick = ()=>{ ideaBox.value = ideas[Math.floor(Math.random()*ideas.length)]; };
+
+  // Ensure QR has a visible background and fixed size
+  qrContainer.style.minWidth = "136px";
+  qrContainer.style.minHeight = "136px";
+  qrContainer.style.background = "#fff";
+  qrContainer.style.borderRadius = "8px";
+
+
+    function pot(){ return stakeEth * 2; }
+    function feeEth(){ return pot() * (feeBps/10000); }
+    function winnerEth(){ return Math.max(0, pot() - feeEth()); }
+    function gasEth(){ return (gasLimit*(gasGwei*1e9))/1e18; }
+
+    function shareBase(){ return 'https://betbase.app/join?bet='; } // clean URL for QR
+
+    function updateNumbers(){
+      stakeUsdOut.textContent = '≈ ' + fmtUsd(stakeEth*ethUsd);
+    if (stakeUsdInput) { stakeUsdInput.value = Math.round(stakeEth*ethUsd); }
+      gasLimitOut.textContent = gasLimit.toLocaleString();
+      gasGweiVal.textContent = String(gasGwei);
+      gasEthOut.textContent = gasEth().toFixed(6);
+      gasUsdOut.textContent = fmtUsd(gasEth()*ethUsd);
+      feePctOut.textContent = (feeBps/100).toString();
+      potEthOut.textContent = fmtEth(pot());
+      potUsdOut.textContent = fmtUsd(pot()*ethUsd);
+      winnerEthOut.textContent = fmtEth(winnerEth());
+      winnerUsdOut.textContent = fmtUsd(winnerEth()*ethUsd);
+      stateOut.textContent = state;
+    sbState.textContent = state; sbFee.textContent=(feeBps/100).toString(); sbPotEth.textContent=fmtEth(pot()); sbPotUsd.textContent=fmtUsd(pot()*ethUsd); sbWinEth.textContent=fmtEth(winnerEth()); sbWinUsd.textContent=fmtUsd(winnerEth()*ethUsd);
+      const url = shareBase() + encodeURIComponent(betIdInput.value || '1');
+      shareUrlInput.value = url;
+      qrcode.makeCode(url);
+    }
+
+    function resetForCreated(){ state='Created'; creatorVote=opponentVote=winner=null; resolveNote && (resolveNote.textContent='Waiting for both votes…'); }
+
+    stakeInput.oninput = ()=>{ const n=parseFloat(stakeInput.value||'0'); stakeEth = Number.isFinite(n)&&n>0?n:0; updateNumbers(); };
+  stakeUsdInput.oninput = ()=>{ const u=parseFloat(stakeUsdInput.value||'0'); const eth = Number.isFinite(u)&&u>0 ? (u/Math.max(1,ethUsd)) : 0; stakeInput.value = eth.toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+    ethUsdInput.oninput = ()=>{ const n=parseFloat(ethUsdInput.value||'0'); ethUsd=Number.isFinite(n)&&n>0?n:0; updateNumbers(); };
+    gasGweiInput.oninput = ()=>{ const n=parseFloat(gasGweiInput.value||'0'); gasGwei=Number.isFinite(n)&&n>0?n:0; updateNumbers(); };
+    betIdInput.oninput = updateNumbers;
+
+    btnCreate.onclick = ()=>{ const n=parseFloat(stakeInput.value||'0'); if(!Number.isFinite(n)||n<=0){alert('Enter a valid stake');return;} feeBps=Math.max(feeBps,MIN_FEE_BPS); resetForCreated(); state='Created'; updateNumbers(); alert('Bet created. Share the QR or link and have your friend click Join.'); };
+    btnJoin.onclick = ()=>{ if(state!=='Created'){alert('Already joined.');return;} state='Funded'; updateNumbers(); };
+
+    function tryResolve(){ if(creatorVote && opponentVote && creatorVote===opponentVote){ winner=creatorVote; state='Resolved'; resolveNote && (resolveNote.textContent = (winner==='creator'?'Creator':'Opponent') + ' confirmed — ready to payout'); updateNumbers(); alert('Resolved: '+(winner==='creator'?'Creator':'Opponent')+' wins.'); } }
+    creatorWonBtn.onclick = ()=>{ if(state==='Funded'){ creatorVote='creator'; tryResolve(); } };
+    creatorOppBtn.onclick = ()=>{ if(state==='Funded'){ creatorVote='opponent'; tryResolve(); } };
+    oppCreatorBtn.onclick = ()=>{ if(state==='Funded'){ opponentVote='creator'; tryResolve(); } };
+    oppWonBtn.onclick = ()=>{ if(state==='Funded'){ opponentVote='opponent'; tryResolve(); } };
+
+    btnRefund.onclick = ()=>{ if(state==='Resolved'){ alert('Already resolved.'); return; } state='Refunded'; updateNumbers(); alert('Refund: each side withdraws their stake. No protocol fee.'); };
+
+    copyBtn.onclick = async ()=>{ try{ await navigator.clipboard.writeText(shareUrlInput.value); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy link',1200); }catch(e){ alert('Copy failed: '+e); } };
+
+    updateNumbers();
+  })();
+  </script>
+</body>
+</html>
