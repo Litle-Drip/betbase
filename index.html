@@ -125,10 +125,11 @@
       </div>
     </div>
   </div>
-
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /*! QRCode.js v1.0.0 (MIT) | https://github.com/davidshimjs/qrcodejs */
-var QRCode;(function(){function l(a){this.mode=c.MODE_8BIT_BYTE;this.data=a}function n(a,b){this.typeNumber=a;this.errorCorrectLevel=b;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}function p(a,b){if(void 0==a.length)throw Error(a.length+"/"+b);for(var e=0;e<a.length&&0==a[e];)e++;this.num=Array(a.length-e+b);for(var d=0;d<a.length-e;d++)this.num[d]=a[d+e]}function q(a,b){this.totalCount=a;this.dataCount=b}function r(){this.buffer=[];this.length=0}
+var QRCode;window.addEventListener('DOMContentLoaded', function(){function l(a){this.mode=c.MODE_8BIT_BYTE;this.data=a}function n(a,b){this.typeNumber=a;this.errorCorrectLevel=b;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}function p(a,b){if(void 0==a.length)throw Error(a.length+"/"+b);for(var e=0;e<a.length&&0==a[e];)e++;this.num=Array(a.length-e+b);for(var d=0;d<a.length-e;d++)this.num[d]=a[d+e]}function q(a,b){this.totalCount=a;this.dataCount=b}function r(){this.buffer=[];this.length=0}
 r.prototype={get:function(a){return 1==(this.buffer[Math.floor(a/8)]>>>7-a%8&1)},put:function(a,b){for(var e=0;e<b;e++)this.putBit(1==(a>>>b-e-1&1))},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0);a&&(this.buffer[b]|=128>>>this.length%8);this.length++}};l.prototype={getLength:function(){return this.data.length},write:function(a){for(var b=0;b<this.data.length;b++)a.put(this.data.charCodeAt(b),8)}};n.prototype={addData:function(a){this.dataList.push(new l(a));
 this.dataCache=null},isDark:function(a,b){if(null==this.modules||a<0||this.moduleCount<=a||b<0||this.moduleCount<=b)throw Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){if(this.typeNumber<1){for(var a=1;40>a;a++){for(var b=q.getRSBlocks(a,this.errorCorrectLevel),e=new r,d=0;d<b.length;d++)e.put(4,4),e.put(this.dataList[0].getLength(),8),this.dataList[0].write(e);if(e.length<=8*b[0].dataCount)break}this.typeNumber=a}this.makeImpl(!1,
 this.getBestMaskPattern())},makeImpl:function(a,b){this.moduleCount=4*this.typeNumber+17;this.modules=Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++){this.modules[e]=Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++)this.modules[e][d]=null}this.setupPositionProbePattern(0,0);this.setupPositionProbePattern(this.moduleCount-7,0);this.setupPositionProbePattern(0,this.moduleCount-7);this.setupPositionAdjustPattern();this.setupTimingPattern();this.setupTypeInfo(a,b);1<=this.typeNumber&&
@@ -188,7 +189,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
     const url = shareBase() + encodeURIComponent(betIdInput.value || '1');
     shareUrlInput.value = url;
-    if (qrcode) { qrcode.makeCode(url); }
+    if (qrcode) { if (qrcode) { qrcode.makeCode(url); } }
 
     // sticky bar
     sbState.textContent = state; sbFee.textContent=(feeBps/100).toString();
@@ -244,7 +245,7 @@ window.addEventListener('DOMContentLoaded', function(){
   ideaShuffle.onclick = ()=>{ ideaBox.value = ideas[Math.floor(Math.random()*ideas.length)]; };
 
   updateNumbers();
-})();
+});
 </script>
 </body>
 </html>
