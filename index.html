@@ -146,9 +146,9 @@ q.LOG_TABLE=Array(256);for(var u=0;8>u;u++)q.EXP_TABLE[u]=1<<u;for(u=8;256>u;u++
 0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=q.glog(this.num[0])-q.glog(a.num[0]),e=Array(this.getLength()),d=0;d<this.getLength();d++)e[d]=this.num[d];for(d=0;d<a.getLength();d++)e[d]^=q.gexp(q.glog(a.num[d])+b);return new p(e,0).mod(a)}};q.getRSBlocks=function(a,b){var e=q.RS_BLOCK_TABLE[4*(a-1)+b];if(void 0==e)throw Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=e.length/3,c=[],f=0;f<d;f++)for(var g=e[3*f+0],k=e[3*f+1],h=e[3*f+2],m=0;m<g;m++)c.push(new q(k,h));
 return c};q.RS_BLOCK_TABLE=[1,26,19,1,26,16,1,26,13,1,26,9,1,44,34,1,44,28,1,44,22,1,44,16,1,70,55,1,70,44,2,35,17,2,35,13,2,35,9,1,100,80,2,50,32,2,50,24,4,25,9,2,50,14,1,134,108,2,67,43,2,33,15,2,33,11,2,33,7,2,86,68,4,43,27,4,43,19,4,43,15,2,86,31,6,43,3,4,101,81,2,101,50,2,101,36,4,50,14,4,101,31,1,122,98,2,61,42,4,31,14,4,31,10,2,62,11,7,45,22,4,91,58,6,36,14,4,91,13,24,45,49,10,46,24,5,45,15,5,45,11,5,45,7,4,57,39,1,80,14,6,58,13,8,43,9,19,26,7,12,11,7,10,7];
 n.stringToBytes=function(a){for(var b=[],e=0;e<a.length;e++){var d=a.charCodeAt(e);128>d?b.push(d):2048>d?(b.push(192|d>>6),b.push(128|63&d)):(b.push(224|d>>12),b.push(128|63&d>>6),b.push(128|63&d))}return b};var c={};c.IMAGE_SIZE=256;c.QuietZone=4;c.stringToBytes=n.stringToBytes;c.createStringToBytes=function(a){var b=function(){return n.stringToBytes(a)};return function(a){return b(a)}};c.createData=function(a,b){var e=new n(-1,b);e.addData(a);e.make();return e};QRCode=function(a,b){this._el=a;this._htOption={width:b&&b.width?b.width:128,height:b&&b.height?b.height:128,correctLevel:q.EC_LEVEL_M,text:b&&b.text?b.text:""};this._oQRCode=null;this._android=-1<this._getAndroid()};QRCode.prototype={_getAndroid:function(){var a=navigator.userAgent.toLowerCase();return-1!=a.indexOf("android")?parseFloat(a.match(/android\s([\d\.]+)/)[1]):0},makeCode:function(a){this._htOption.text=a;this._make()},_make:function(){this._oQRCode=c.createData(this._htOption.text,this._htOption.correctLevel);this._el.innerHTML="";for(var a=document.createElement("canvas"),b=a.getContext("2d"),e=this._htOption.width,d=this._htOption.height,f=this._oQRCode.getModuleCount(),g=Math.floor(e/f),k=Math.floor(d/f),h=0;h<f;h++)for(var m=0;m<f;m++)b.fillStyle=this._oQRCode.isDark(h,m)?"#000":"#fff",b.fillRect(m*g,h*k,g,k);this._el.appendChild(a)}};
-})();
+});
 
-(function(){
+window.addEventListener('DOMContentLoaded', function(){
   const MIN_FEE_BPS = 250; let feeBps = MIN_FEE_BPS;
   let state = 'Created'; let creatorVote=null, opponentVote=null, winner=null;
   let stakeEth = 0.05, gasGwei = 5, gasLimit = 80000, ethUsd = 3500;
@@ -169,7 +169,7 @@ n.stringToBytes=function(a){for(var b=[],e=0;e<a.length;e++){var d=a.charCodeAt(
   const creatorWonBtn = el('creatorWon'); const creatorOppBtn = el('creatorSaysOpponent');
   const oppCreatorBtn = el('opponentSaysCreator'); const oppWonBtn = el('opponentWon'); const copyBtn = el('copyBtn');
 
-  let qrcode = new QRCode(qrContainer, { width: 128, height: 128, text: '' });
+  let qrcode = null; if (qrContainer && typeof QRCode !== 'undefined') {   qrcode = new QRCode(qrContainer, { width: 128, height: 128, text: '' }); }
 
   function pot(){ return stakeEth * 2; }
   function feeEth(){ return pot() * (feeBps/10000); }
@@ -188,7 +188,7 @@ n.stringToBytes=function(a){for(var b=[],e=0;e<a.length;e++){var d=a.charCodeAt(
 
     const url = shareBase() + encodeURIComponent(betIdInput.value || '1');
     shareUrlInput.value = url;
-    qrcode.makeCode(url);
+    if (qrcode) { qrcode.makeCode(url); }
 
     // sticky bar
     sbState.textContent = state; sbFee.textContent=(feeBps/100).toString();
