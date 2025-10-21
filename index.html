@@ -1,178 +1,230 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TheJuice — Pre‑Launch Bet</title>
-  <meta name="description" content="The first ever bet on The Juice… was The Juice itself. No bookie. Just code." />
-  <meta name="theme-color" content="#0b1220" />
-  <meta property="og:title" content="TheJuice — Pre‑Launch Bet" />
-  <meta property="og:description" content="The first ever bet on The Juice… was The Juice itself. No bookie. Just code." />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>💰 TheJuice — Crypto Escrow Bets (Pro)</title>
   <style>
-    body {
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(0,230,246,.12), transparent 40%),
-                  radial-gradient(1000px 700px at 90% 0%, rgba(255,215,0,.08), transparent 45%), #0b1220;
-      color: #fff;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    .glass { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
-    .digit { font-variant-numeric: tabular-nums; letter-spacing:.25px; transition: transform .2s ease, color .2s ease; }
-    .pulse { transform: scale(1.05); color: #00E6F6; }
-    .progress { height:6px; border-radius:9999px; background: rgba(255,255,255,.08); overflow:hidden; position: relative; }
-    .progress > span { display:block; height:100%; background: linear-gradient(90deg, rgba(0,230,246,0.3), rgba(0,230,246,0.6), rgba(0,230,246,0.3)); background-size:200% 100%; animation: shimmer 4s infinite linear; }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    .selected { outline: 2px solid #00E6F6; outline-offset: 2px; }
-    .grid-gap { gap: 1.25rem; }
+  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2a44;--accent:#22c55e;}
+  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#0b1220,#0a0f1a);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text)}
+  .container{max-width:1200px;margin:12px auto;padding:0 12px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  h1{font-size:24px;margin:0} .brand{display:flex;align-items:center;gap:10px} .brand span.logo{font-size:26px}
+  .pill{background:#052e16;border:1px solid #16a34a;color:#86efac;padding:3px 8px;border-radius:999px;font-size:11px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .grid{display:grid;gap:10px} @media(min-width:900px){.grid-2{grid-template-columns:1.6fr 1.6fr 1.2fr}}
+  .label{font-size:13px;color:var(--muted)}
+  .input{width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;background:#0b1324;color:var(--text)}
+  .btn{padding:8px 12px;border:1px solid var(--accent);background:#0b1324;border-radius:12px;color:#d1fae5;cursor:pointer;transition:transform .06s ease, box-shadow .12s ease} .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .small{font-size:12px;color:var(--muted)}
+  #qrBox{border:1px dashed var(--border);border-radius:10px;padding:8px;background:#0b1324;display:inline-flex;align-items:center;justify-content:center;min-width:136px;min-height:136px}
+  .primary{background:#16a34a;border-color:#16a34a;color:#052e16} .primary:hover{filter:brightness(1.05)}
+  .stickybar{position:sticky;bottom:0;z-index:50;background:rgba(11,19,36,.9);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;margin-top:10px;padding:10px}
+  .stickygrid{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .chip{background:#0b1324;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;color:#cbd5e1}
   </style>
+  <!-- Stable QR library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="min-h-screen">
-  <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
-    <header class="text-center space-y-3">
-      <h1 class="text-4xl font-bold tracking-tight">TheJuice — Pre‑Launch Bet</h1>
-      <p class="text-cyan-400 text-sm">The first ever bet on The Juice… was The Juice itself</p>
-    </header>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand"><span class="logo">💰</span><h1>BetBase — Crypto Escrow Bets</h1></div>
+      <div class="pill">Skill bets • instant escrow • fee snapshot</div>
+    </div>
+    <p class="small">Create a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee-free.</p>
 
-    <section class="glass rounded-2xl p-8 space-y-10">
-      <div class="text-center space-y-3">
-        <h2 class="text-3xl font-semibold">Will The Juice launch before <span id="deadlineLabel"></span>?</h2>
-        <p class="text-slate-300">No bookie. Just code. (Pre‑launch demo — real escrow + wallets go live at launch.)</p>
-      </div>
-
-      <div id="countdown" class="grid grid-cols-2 md:grid-cols-4 gap-4 justify-center">
-        <div class="glass rounded-xl p-4 text-center"><div id="d" class="digit text-5xl font-bold">—</div><div class="text-xs text-slate-300">Days</div></div>
-        <div class="glass rounded-xl p-4 text-center"><div id="h" class="digit text-5xl font-bold">—</div><div class="text-xs text-slate-300">Hours</div></div>
-        <div class="glass rounded-xl p-4 text-center"><div id="m" class="digit text-5xl font-bold">—</div><div class="text-xs text-slate-300">Minutes</div></div>
-        <div class="glass rounded-xl p-4 text-center"><div id="s" class="digit text-5xl font-bold">—</div><div class="text-xs text-slate-300">Seconds</div></div>
-      </div>
-
-      <div class="grid md:grid-cols-2 grid-gap">
-        <button id="btnBefore" class="rounded-xl p-4 text-left bg-green-400/10 border border-green-300/20 hover:bg-green-400/20">
-          <div class="flex justify-between items-center">
-            <div>
-              <div class="text-green-300 font-medium">Before deadline</div>
-              <div class="text-slate-400 text-sm">I believe we ship before the countdown ends.</div>
-            </div>
-            <div class="text-right">
-              <div id="beforePct" class="text-lg font-semibold">0%</div>
-              <div id="beforeVotes" class="text-xs text-slate-400">0 votes</div>
-            </div>
-          </div>
-          <div class="progress mt-3"><span id="beforeBar" style="width:0%"></span></div>
-        </button>
-        <button id="btnAfter" class="rounded-xl p-4 text-left bg-red-400/10 border border-red-300/20 hover:bg-red-400/20">
-          <div class="flex justify-between items-center">
-            <div>
-              <div class="text-red-300 font-medium">After deadline</div>
-              <div class="text-slate-400 text-sm">We think it slips past the countdown.</div>
-            </div>
-            <div class="text-right">
-              <div id="afterPct" class="text-lg font-semibold">0%</div>
-              <div id="afterVotes" class="text-xs text-slate-400">0 votes</div>
-            </div>
-          </div>
-          <div class="progress mt-3"><span id="afterBar" style="width:0%"></span></div>
-        </button>
-      </div>
-
-      <div class="grid md:grid-cols-3 grid-gap">
-        <div class="glass rounded-xl p-3 text-center"><div class="text-xs text-slate-300">Your vote</div><div id="yourVote" class="text-sm font-medium">—</div></div>
-        <div class="glass rounded-xl p-3 md:col-span-2 text-center"><div class="text-xs text-slate-300">Totals</div><div id="totals" class="text-sm font-medium">0 : 0</div></div>
-      </div>
-
-      <form id="emailForm" class="max-w-md mx-auto space-y-2">
-        <div class="flex gap-2">
-          <input id="emailInput" type="email" placeholder="Enter email for early access" class="input flex-1 rounded-lg px-3 py-2 text-sm placeholder:text-slate-400 text-white focus:outline-none" required>
-          <button id="notifyBtn" class="btn rounded-lg px-4 py-2 bg-cyan-500/80 hover:bg-cyan-500 text-white" type="submit">Notify me</button>
+    <div class="grid grid-2">
+      <!-- Create Bet -->
+      <div class="card">
+        <h3>Create Bet</h3>
+        <div class="row">
+          <div><label class="label">Stake (ETH)</label><input id="stake" class="input" type="number" step="0.0001" value="0.05" style="width:140px"/></div>
+          <div><label class="label">Stake (USD)</label><input id="stakeUsdInput" class="input" type="number" step="1" value="175" style="width:140px"/></div>
+          <div class="row" style="gap:6px;align-items:flex-end"><button id="stakeMinus" class="btn" title="Decrease">−</button><button id="stakePlus" class="btn" title="Increase">+</button></div>
         </div>
-        <p id="emailMsg" class="text-xs text-slate-400"></p>
-      </form>
+        <div class="row small"><span style="opacity:.9">Set by USD:</span><button class="btn" id="q1">$1</button><button class="btn" id="q5">$5</button><button class="btn" id="q20">$20</button><span style="margin-left:8px">Custom</span><input id="qCustomUsd" class="input" type="number" min="0" step="1" value="10" style="width:100px"/></div>
+        <div id="stakeUsd" class="small">≈ $0.00</div>
 
-      <div class="flex items-center justify-center gap-3">
-        <button id="copyLink" class="btn rounded-lg px-3 py-2 bg-white/10 border border-white/20 hover:bg-white/15">Copy page link</button>
-        <span id="copyToast" class="text-xs text-emerald-300 opacity-0 transition-opacity">Copied ✓</span>
-        <canvas id="qr" width="96" height="96" class="rounded-lg border border-white/20 bg-white/5"></canvas>
+        <div style="height:8px"></div>
+        <label class="label">Referee (optional)</label>
+        <input id="referee" class="input" placeholder="Referee address (0x...) or leave blank"/>
+        <div class="small"><strong>Referee</strong> = a trusted third person who can decide the winner <em>after the deadline</em> if players don’t agree. Blank = both players must confirm the same winner.</div>
+
+        <div style="height:8px"></div>
+        <label class="label">Deadline (minutes)</label>
+        <input id="deadline" class="input" type="number" value="30"/>
+
+        <div style="height:8px"></div>
+        <div class="row"><button id="btnCreate" class="btn primary">Create & Fund</button><button id="btnReset" class="btn">Reset demo</button></div>
+
+        <div style="margin-top:8px" class="small">
+          <div>Gas est: ~<span id="gasLimit">80000</span> gas @ <span id="gasGweiVal">5</span> gwei ≈ <span id="gasEth">0</span> ETH (<span id="gasUsd">$0.00</span>)</div>
+          <div class="row" style="margin-top:6px">
+            <label class="label">ETH/USD</label><input id="ethUsd" type="number" class="input" style="width:120px" value="3500"/>
+            <label class="label">Gas (gwei)</label><input id="gasGwei" type="number" class="input" style="width:120px" value="5"/>
+          </div>
+        </div>
       </div>
 
-      <p class="text-slate-400 text-xs text-center">Pre‑launch demo: votes are visual only. On launch, bets will be on‑chain (Base) with trustless escrow and a protocol fee (min 2.5%).</p>
-    </section>
-  </main>
+      <!-- Middle column: Join/Resolve + Ideas -->
+      <div class="grid" style="gap:10px">
+        <div class="card">
+          <h3>Join / Resolve</h3>
+          <div class="small" id="resolveNote" style="margin-top:4px;opacity:.9">Waiting for both votes…</div>
+          <div class="row" style="margin:8px 0">
+            <button id="btnJoin" class="btn">Join & Match Stake</button>
+            <button id="btnRefund" class="btn">Request Refund</button>
+          </div>
+          <div class="grid" style="grid-template-columns:1fr 1fr; gap:10px">
+            <div class="card" style="padding:10px">
+              <div class="small">Creator vote</div>
+              <div class="row" style="margin-top:6px">
+                <button id="creatorWon" class="btn">Creator won</button>
+                <button id="creatorSaysOpponent" class="btn">Opponent won</button>
+              </div>
+            </div>
+            <div class="card" style="padding:10px">
+              <div class="small">Opponent vote</div>
+              <div class="row" style="margin-top:6px">
+                <button id="opponentSaysCreator" class="btn">Creator won</button>
+                <button id="opponentWon" class="btn">Opponent won</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <script>
-    const LAUNCH_UTC = '2025-12-31T23:59:59Z';
+        <div class="card">
+          <h3>Bet Ideas</h3>
+          <div class="small">Tap shuffle to get a quick, fair challenge idea you can use IRL.</div>
+          <div class="row" style="margin-top:6px">
+            <input id="ideaBox" class="input" readonly value="Make a 3-point shot from the top of the key"/>
+            <button id="ideaShuffle" class="btn">Shuffle</button>
+          </div>
+          <div class="small" style="margin-top:6px">Examples: darts double-out, cornhole 2-in-a-row, bottle flip 3/5, crossbar challenge, closest-to-the-pin (mini golf), pool: bank shot in 2 tries.</div>
+        </div>
+      </div>
 
-    function parseDeadline(s){ return new Date(s); }
+      <!-- Right: Share / QR -->
+      <div class="card">
+        <h3>Share / QR</h3>
+        <div class="small">Show this to your opponent so they can open the exact bet.</div>
+        <div class="row" style="margin-top:6px">
+          <input id="betId" class="input" style="width:140px" value="1"/>
+          <input id="shareUrl" class="input" readonly/>
+          <button id="copyBtn" class="btn">Copy link</button>
+        </div>
+        <div id="qrBox" style="margin-top:8px"></div>
+      </div>
+    </div>
 
-    function startCountdown(deadline){
-      const ids = ['d','h','m','s'];
-      function update(){
-        const now = new Date(); let diff = Math.max(0, deadline-now);
-        const d = Math.floor(diff/86400000); diff-=d*86400000;
-        const h = Math.floor(diff/3600000); diff-=h*3600000;
-        const m = Math.floor(diff/60000); diff-=m*60000;
-        const s = Math.floor(diff/1000);
-        [d,h,m,s].forEach((v,i)=>document.getElementById(ids[i]).textContent=v);
-      }
-      update();
-      let ticks=0;
-      setInterval(()=>{ update(); ticks++; if(ticks%10===0){ document.querySelectorAll('.digit').forEach(el=>{ el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'),300); }); } },1000);
-    }
+    <!-- Sticky summary -->
+    <div class="stickybar">
+      <div class="stickygrid">
+        <div class="chip">State: <strong id="sbState">Created</strong></div>
+        <div class="chip">Fee: <strong><span id="sbFee">2.5</span>%</strong></div>
+        <div class="chip">Pot: <strong><span id="sbPotEth">0.0000</span> ETH</strong> (<span id="sbPotUsd">$0.00</span>)</div>
+        <div class="chip">Winner gets: <strong><span id="sbWinEth">0.0000</span> ETH</strong> (<span id="sbWinUsd">$0.00</span>)</div>
+      </div>
+    </div>
+  </div>
 
-    function drawQR(text, size, canvas){
-      if(!canvas) return;
-      const srcs=[
-        `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(text)}`,
-        `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`,
-        `https://quickchart.io/qr?size=${size}&text=${encodeURIComponent(text)}`
-      ];
-      const ctx=canvas.getContext('2d');
-      let i=0, t; const img=new Image(); img.crossOrigin='anonymous';
-      img.onload=()=>{ clearTimeout(t); ctx.clearRect(0,0,size,size); ctx.drawImage(img,0,0,size,size); };
-      img.onerror=()=>{ if(i<srcs.length-1){ i++; load(); } };
-      function load(){ img.src=srcs[i]; t=setTimeout(()=>img.onerror(), 2500); }
-      load();
-    }
+<script>
+window.addEventListener('DOMContentLoaded', function(){
+  const MIN_FEE_BPS = 250; let feeBps = MIN_FEE_BPS;
+  let state = 'Created'; let creatorVote=null, opponentVote=null, winner=null;
+  let stakeEth = 0.05, gasGwei = 5, gasLimit = 80000, ethUsd = 3500;
 
-    function confettiLaunch(){ confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
+  const el = (id)=>document.getElementById(id);
+  const fmtUsd = (n)=> '$' + n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtEth = (n)=> (Math.round(n*10000)/10000).toFixed(4);
 
-    const STORE_KEY='tj_prelaunch_votes_v2';
-    function getData(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{totals:{before:0,after:0},user:{vote:null}};}catch{return {totals:{before:0,after:0},user:{vote:null}};} }
-    function setData(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+  const stakeInput = el('stake'); const stakeUsdInput = el('stakeUsdInput');
+  const ethUsdInput = el('ethUsd'); const gasGweiInput = el('gasGwei');
+  const betIdInput = el('betId'); const shareUrlInput = el('shareUrl'); const qrContainer = el('qrBox');
+  const stakeUsdOut = el('stakeUsd'); const gasLimitOut = el('gasLimit'); const gasGweiVal = el('gasGweiVal');
+  const gasEthOut = el('gasEth'); const gasUsdOut = el('gasUsd');
+  const sbState=el('sbState'), sbFee=el('sbFee'), sbPotEth=el('sbPotEth'), sbPotUsd=el('sbPotUsd'), sbWinEth=el('sbWinEth'), sbWinUsd=el('sbWinUsd');
+  const resolveNote = el('resolveNote');
+  const btnCreate = el('btnCreate'); const btnJoin = el('btnJoin'); const btnRefund = el('btnRefund'); const btnReset = el('btnReset');
+  const creatorWonBtn = el('creatorWon'); const creatorOppBtn = el('creatorSaysOpponent');
+  const oppCreatorBtn = el('opponentSaysCreator'); const oppWonBtn = el('opponentWon'); const copyBtn = el('copyBtn');
 
-    function render(d){
-      const a=d.totals.before||0,b=d.totals.after||0,sum=(a+b)||1;
-      const bp=a/sum,ap=b/sum;
-      document.getElementById('beforePct').textContent=(bp*100).toFixed(1)+'%';
-      document.getElementById('afterPct').textContent=(ap*100).toFixed(1)+'%';
-      document.getElementById('beforeVotes').textContent=a+' vote'+(a!==1?'s':'');
-      document.getElementById('afterVotes').textContent=b+' vote'+(b!==1?'s':'');
-      document.getElementById('beforeBar').style.width=(bp*100)+'%';
-      document.getElementById('afterBar').style.width=(ap*100)+'%';
-      document.getElementById('totals').textContent=`${a} : ${b}`;
-      document.getElementById('yourVote').textContent=d.user.vote?d.user.vote.charAt(0).toUpperCase()+d.user.vote.slice(1):'—';
-    }
+  let qrcode = null;
+  if (qrContainer && window.QRCode) { qrcode = new QRCode(qrContainer, { width: 128, height: 128, text: '' }); }
 
-    function vote(side){
-      const d=getData();
-      if(!['before','after'].includes(side))return;
-      const firstVote=!d.user.vote;
-      if(d.user.vote===side){render(d);return;}
-      if(d.user.vote)d.totals[d.user.vote]=Math.max(0,(d.totals[d.user.vote]||0)-1);
-      d.user.vote=side; d.totals[side]=(d.totals[side]||0)+1; setData(d); render(d);
-      if(firstVote) confettiLaunch();
-    }
+  function pot(){ return stakeEth * 2; }
+  function feeEth(){ return pot() * (feeBps/10000); }
+  function winnerEth(){ return Math.max(0, pot() - feeEth()); }
+  function gasEthCalc(){ return (gasLimit*(gasGwei*1e9))/1e18; }
+  function shareBase(){ return 'https://litle-drip.github.io/betbase/?bet='; }
 
-    document.addEventListener('DOMContentLoaded',()=>{
-      const deadline=parseDeadline(LAUNCH_UTC);
-      document.getElementById('deadlineLabel').textContent=deadline.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
-      startCountdown(deadline);
-      document.getElementById('btnBefore').onclick=()=>vote('before');
-      document.getElementById('btnAfter').onclick=()=>vote('after');
-      render(getData());
-      // draw QR of current page
-      drawQR(location.href, 96, document.getElementById('qr'));
-    });
-  </script>
+  function updateNumbers(){
+    if (stakeUsdOut) stakeUsdOut.textContent = '≈ ' + fmtUsd(stakeEth*ethUsd);
+    if (gasLimitOut) gasLimitOut.textContent = gasLimit.toLocaleString();
+    if (gasGweiVal) gasGweiVal.textContent = String(gasGwei);
+    if (gasEthOut) gasEthOut.textContent = gasEthCalc().toFixed(6);
+    if (gasUsdOut) gasUsdOut.textContent = fmtUsd(gasEthCalc()*ethUsd);
+    const url = shareBase() + encodeURIComponent(betIdInput.value || '1');
+    if (shareUrlInput) shareUrlInput.value = url;
+    if (qrcode) qrcode.makeCode(url);
+    sbState.textContent = state; sbFee.textContent=(feeBps/100).toString();
+    sbPotEth.textContent=fmtEth(pot()); sbPotUsd.textContent=fmtUsd(pot()*ethUsd);
+    sbWinEth.textContent=fmtEth(winnerEth()); sbWinUsd.textContent=fmtUsd(winnerEth()*ethUsd);
+  }
+
+  function resetForCreated(){ state='Created'; creatorVote=opponentVote=winner=null; if(resolveNote) resolveNote.textContent='Waiting for both votes…'; }
+
+  // Inputs
+  stakeInput.oninput = ()=>{ const n=parseFloat(stakeInput.value||'0'); stakeEth = Number.isFinite(n)&&n>0?n:0; if(stakeUsdInput) stakeUsdInput.value=Math.round(stakeEth*ethUsd); updateNumbers(); };
+  stakeUsdInput.oninput = ()=>{ const u=parseFloat(stakeUsdInput.value||'0'); const eth = Number.isFinite(u)&&u>0 ? (u/Math.max(1,ethUsd)) : 0; stakeInput.value = eth.toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  const stakeMinus = document.getElementById('stakeMinus'); const stakePlus  = document.getElementById('stakePlus');
+  stakeMinus.onclick = ()=>{ const n=parseFloat(stakeInput.value||'0')||0; const v=Math.max(0, (n-0.01)); stakeInput.value = v.toFixed(2); stakeInput.dispatchEvent(new Event('input')); };
+  stakePlus.onclick  = ()=>{ const n=parseFloat(stakeInput.value||'0')||0; const v=n+0.01; stakeInput.value = v.toFixed(2); stakeInput.dispatchEvent(new Event('input')); };
+
+  ethUsdInput.oninput = ()=>{ const n=parseFloat(ethUsdInput.value||'0'); ethUsd=Number.isFinite(n)&&n>0?n:0; stakeInput.dispatchEvent(new Event('input')); };
+  gasGweiInput.oninput = ()=>{ const n=parseFloat(gasGweiInput.value||'0'); gasGwei=Number.isFinite(n)&&n>0?n:0; updateNumbers(); };
+  const toEth = (usd)=> (usd / Math.max(1, ethUsd));
+  const q1  = document.getElementById('q1'); const q5  = document.getElementById('q5'); const q20 = document.getElementById('q20'); const qCustomUsd = document.getElementById('qCustomUsd');
+  q1.onclick  = ()=>{ stakeInput.value = toEth(1).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  q5.onclick  = ()=>{ stakeInput.value = toEth(5).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  q20.onclick = ()=>{ stakeInput.value = toEth(20).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  qCustomUsd.oninput = ()=>{ const usd = parseFloat(qCustomUsd.value||'0'); if (!Number.isFinite(usd) || usd <= 0) return; stakeInput.value = toEth(usd).toFixed(4); stakeInput.dispatchEvent(new Event('input')); };
+  betIdInput.oninput = updateNumbers;
+
+  // Actions
+  btnCreate.onclick = ()=>{ const n=parseFloat(stakeInput.value||'0'); if(!Number.isFinite(n)||n<=0){alert('Enter a valid stake');return;} feeBps=Math.max(feeBps,MIN_FEE_BPS); resetForCreated(); state='Created'; updateNumbers(); alert('Bet created. Share the QR or link and have your friend click Join.'); };
+  btnJoin.onclick = ()=>{ if(state!=='Created'){alert('Already joined.');return;} state='Funded'; updateNumbers(); };
+  function tryResolve(){ if(creatorVote && opponentVote && creatorVote===opponentVote){ winner=creatorVote; state='Resolved'; if(resolveNote) resolveNote.textContent = (winner==='creator'?'Creator':'Opponent') + ' confirmed — ready to payout'; updateNumbers(); alert('Resolved: '+(winner==='creator'?'Creator':'Opponent')+' wins.'); } }
+  creatorWonBtn.onclick = ()=>{ if(state==='Funded'){ creatorVote='creator'; tryResolve(); } };
+  creatorOppBtn.onclick = ()=>{ if(state==='Funded'){ creatorVote='opponent'; tryResolve(); } };
+  oppCreatorBtn.onclick = ()=>{ if(state==='Funded'){ opponentVote='creator'; tryResolve(); } };
+  oppWonBtn.onclick = ()=>{ if(state==='Funded'){ opponentVote='opponent'; tryResolve(); } };
+  btnRefund.onclick = ()=>{ if(state==='Resolved'){ alert('Already resolved.'); return; } state='Refunded'; updateNumbers(); alert('Refund: each side withdraws their stake. No protocol fee.'); };
+  copyBtn.onclick = async ()=>{ try{ await navigator.clipboard.writeText(shareUrlInput.value||window.location.href); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy link',1200);}catch(e){ alert('Copy failed: '+e);} };
+
+  btnReset.onclick = ()=>{ stakeInput.value='0.05'; stakeInput.dispatchEvent(new Event('input')); betIdInput.value='1'; creatorVote=null; opponentVote=null; winner=null; feeBps=250; state='Created'; if(resolveNote) resolveNote.textContent='Waiting for both votes…'; updateNumbers(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+  // Bet ideas
+  const ideas = [
+    "Make a 3-point shot from the top of the key",
+    "Darts: land a double within 3 throws",
+    "Cornhole: 2 bags on board in 3 tosses",
+    "Bottle flip: 3 successes out of 5",
+    "Soccer: hit the crossbar in 3 shots",
+    "Mini golf: closest to the hole from 15ft",
+    "Pool: sink a bank shot in 2 tries",
+    "Ping pong: hit corner target in 3 serves",
+    "Frisbee: 20-yard toss into hoop in 3 tries"
+  ];
+  const ideaBox = document.getElementById('ideaBox'); const ideaShuffle = document.getElementById('ideaShuffle');
+  ideaShuffle.onclick = ()=>{ ideaBox.value = ideas[Math.floor(Math.random()*ideas.length)]; };
+
+  // init
+  stakeInput.dispatchEvent(new Event('input'));
+  updateNumbers();
+});
+</script>
 </body>
 </html>
