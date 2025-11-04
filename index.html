@@ -140,7 +140,7 @@ function updateQR(){
 }
 
 // ------- Web3 state -------
-let provider, signer; let isConnected = false; function shortAddr(a){return a? a.slice(0,6)+'…'+a.slice(-4):'—';}
+let provider, signer;
 function getContract(){
   const addr = document.getElementById('contractAddress').value.trim();
   if (!addr || !addr.startsWith('0x') || addr.length !== 42) { alert('Enter a valid contract address.'); throw new Error('no contract'); }
@@ -164,28 +164,20 @@ async function ensureChain(){
 
 async function connect(){
   try {
-    if (!window.ethereum){ alert('MetaMask not found.'); return; }
     await ensureChain();
     provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
     signer = await provider.getSigner();
-    isConnected = true;
-    const addr = await signer.getAddress();
-    document.getElementById('status').textContent = 'State: Connected ' + shortAddr(addr);
+    document.getElementById('status').textContent = 'State: Connected ' + await signer.getAddress();
   } catch (e){
-    isConnected = false;
     document.getElementById('status').textContent = 'State: Connect error – ' + (e?.message||e);
   }
 }
 
-async function switchChain(){
-  await ensureChain();
-  if (!isConnected) { await connect(); }
-}
+async function switchChain(){ await ensureChain(); }
 
 // ------- Actions wired to your existing buttons -------
 async function onCreate(){
-  if (!isConnected) { await connect(); }
   const stakeEth = document.getElementById('stakeEth').value.trim();
   const feeBps = Math.max(parseInt(document.getElementById('feeBps').value||'0',10), 250);
   const joinSecs = parseInt(document.getElementById('joinSecs').value||'86400',10);
@@ -211,7 +203,6 @@ async function onCreate(){
 }
 
 async function onJoin(){
-  if (!isConnected) { await connect(); }
   const betId = document.getElementById('betIdJoin').value.trim();
   const stakeEth = document.getElementById('stakeEth').value.trim(); // match creator stake
   document.getElementById('actionStatus').textContent = 'Sending…';
@@ -229,7 +220,6 @@ async function onJoin(){
 }
 
 async function onVote(creatorWon){
-  if (!isConnected) { await connect(); }
   const betId = document.getElementById('betIdJoin').value.trim();
   document.getElementById('actionStatus').textContent = 'Sending…';
   try{
@@ -245,7 +235,6 @@ async function onVote(creatorWon){
 }
 
 async function onRefund(){
-  if (!isConnected) { await connect(); }
   const betId = document.getElementById('betIdJoin').value.trim();
   document.getElementById('actionStatus').textContent = 'Sending…';
   try{
@@ -280,9 +269,6 @@ window.addEventListener('DOMContentLoaded', function(){
   // Web3 buttons
   document.getElementById('connect').onclick = connect;
   document.getElementById('switch').onclick = switchChain;
-  const addrInput = document.getElementById('contractAddress');
-  document.getElementById('copyAddr').onclick = async ()=>{ try{ await navigator.clipboard.writeText(addrInput.value); }catch(_){ } };
-  document.getElementById('editAddr').onclick = ()=>{ addrInput.readOnly = !addrInput.readOnly; document.getElementById('editAddr').textContent = addrInput.readOnly ? 'Edit' : 'Lock'; };
   document.getElementById('create').onclick = onCreate;
   document.getElementById('reset').onclick = () => { document.getElementById('stakeEth').value='0.05'; document.getElementById('stakeUsd').value='175'; updateDisplay(); };
   document.getElementById('join').onclick = onJoin;
