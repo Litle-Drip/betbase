@@ -259,9 +259,39 @@ async function onRefund(){
 }
 
 // ------- Wire events & initial UI -------
+function byId(...ids){ for(const id of ids){ const el=document.getElementById(id); if(el) return el; } return null; }
 window.addEventListener('DOMContentLoaded', function(){
   // USD/ETH preview
   updateDisplay();
+  byId('stakeEth').addEventListener('input', updateDisplay);
+  byId('stakeUsd').addEventListener('input', function(){
+    byId('stakeEth').value = (parseFloat(byId('stakeUsd').value||0) / ethUsd).toFixed(4);
+    updateDisplay();
+  });
+  // QR
+  updateQR();
+  byId('betId').addEventListener('input', updateQR);
+  byId('copyLink').onclick = async () => {
+    const betId = byId('betId').value || '1';
+    const url = location.origin + location.pathname + '?bet=' + betId;
+    await navigator.clipboard.writeText(url);
+  };
+  // Web3 buttons (support old IDs too)
+  (byId('connect')||{}).onclick = connect;
+  (byId('switch')||{}).onclick = switchChain;
+  (byId('copyAddr')||{}).onclick = async ()=>{ try{ await navigator.clipboard.writeText(byId('contractAddress').value); }catch(_){ } };
+  (byId('editAddr')||{}).onclick = ()=>{ const el = byId('contractAddress'); el.readOnly = !el.readOnly; byId('editAddr').textContent = el.readOnly ? 'Edit' : 'Lock'; };
+  // Create/Join/Refund wiring: accept old or new IDs
+  (byId('create','btnCreate')||{}).onclick = onCreate;
+  (byId('reset')||{}).onclick = () => { byId('stakeEth').value='0.05'; byId('stakeUsd').value='175'; updateDisplay(); };
+  (byId('join','btnJoin')||{}).onclick = onJoin;
+  (byId('refund','btnRefund')||{}).onclick = onRefund;
+  // Vote buttons
+  (byId('creatorWin1')||{}).onclick = () => onVote(true);
+  (byId('opponentWin1')||{}).onclick = () => onVote(false);
+  (byId('creatorWin2')||{}).onclick = () => onVote(true);
+  (byId('opponentWin2')||{}).onclick = () => onVote(false);
+});
   document.getElementById('stakeEth').addEventListener('input', updateDisplay);
   document.getElementById('stakeUsd').addEventListener('input', function(){
     document.getElementById('stakeEth').value = (parseFloat(document.getElementById('stakeUsd').value||0) / ethUsd).toFixed(4);
