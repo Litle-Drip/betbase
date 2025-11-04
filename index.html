@@ -1,62 +1,327 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>The Juice — Crypto Escrow Bets</title>
+  <style>
+  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2a44;--accent:#22c55e;}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b1220,#0a0f1a);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text)}
+  .container{max-width:1200px;margin:20px auto;padding:0 16px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  h1{font-size:26px;margin:0}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand span.logo{font-size:26px}
+  .pill{background:#052e16;border:1px solid #16a34a;color:#86efac;padding:4px 10px;border-radius:999px;font-size:12px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.25);height:100%}
+  .grid{display:grid;gap:14px}
+  @media(min-width:900px){.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .label{font-size:13px;color:var(--muted)}
+  .input{width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;background:#0b1324;color:var(--text)}
+  .btn{padding:9px 13px;border:1px solid var(--accent);background:#0b1324;border-radius:12px;color:#d1fae5;cursor:pointer;transition:transform .06s ease, box-shadow .12s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  .btn-plain{background:#fff;color:#111;border:1px solid #1f2937;border-radius:12px;padding:9px 13px;font-weight:600}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .small{font-size:12px;color:var(--muted)}
+  #qrBox{border:1px dashed var(--border);border-radius:10px;padding:10px;background:#0b1324;display:inline-flex;align-items:center;justify-content:center;min-width:136px;min-height:136px}
+  .primary{background:#16a34a;border-color:#16a34a;color:#052e16}
+  .primary:hover{filter:brightness(1.05)}
+  .stickybar{position:sticky;bottom:0;z-index:5;background:rgba(11,19,36,.9);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:14px;margin-top:14px;padding:12px}
+  .stickygrid{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .chip{background:#0b1324;border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;color:#cbd5e1}
+  .addr{background:#0b1324;color:#e2e8f0;border:1px solid var(--border);border-radius:10px;padding:8px 10px;width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* State chip turns green when connected/created */
+  .state-chip{ padding:4px 10px; border-radius:999px; border:1px solid var(--border); }
+  .state-ok{ background:#052e16; color:#86efac; border-color:#16a34a; }
+  .voteGrid{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;grid-auto-rows:1fr}
+  .voteCard{display:flex;flex-direction:column;height:100%}
+  .voteTitle{font-size:14px;font-weight:600;color:#e2e8f0;letter-spacing:.2px;margin-bottom:4px}
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand"><span class="logo">🧃</span><h1>The Juice — Crypto Escrow Bets</h1></div>
+      <div class="row">
+        <input id="contractAddress" class="addr" value="0xA235352c02A9EEf99001319fb20a35A8a45479b4" readonly title="0xA235352c02A9EEf99001319fb20a35A8a45479b4"/>
+        <button id="connect" class="btn-plain">Connect Wallet</button>
+        <button id="switch" class="btn">Switch to Base Sepolia</button>
+      </div>
+    </div>
+
+    <div class="pill">Base • Sepolia • (84532)</div>
+    <p class="small" style="margin-top:10px">Create a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee-free.</p>
+
+    <div class="grid grid-3">
+      <!-- Create Bet -->
+      <div class="card">
+        <h3>Create Bet</h3>
+        <div class="row">
+          <div><label class="label">Stake (ETH)</label><input id="stake" class="input" type="number" step="0.0001" value="0.05" style="width:140px"/></div>
+          <div><label class="label">Stake (USD)</label><input id="stakeUsdInput" class="input" type="number" step="1" value="175" style="width:140px"/></div>
+          <div class="row" style="gap:6px;align-items:flex-end"><button id="stakeMinus" class="btn" title="Decrease">−</button><button id="stakePlus" class="btn" title="Increase">+</button></div>
+        </div>
+        <div class="row small"><span style="opacity:.9">Set by USD:</span><button class="btn" id="q1">$1</button><button class="btn" id="q5">$5</button><button class="btn" id="q20">$20</button><span style="margin-left:8px">Custom</span><input id="qCustomUsd" class="input" type="number" min="0" step="1" value="10" style="width:100px"/></div>
+        <div id="stakeUsd" class="small">≈ $0.00</div>
+
+        <div style="height:10px"></div>
+        <label class="label">Fee (fixed at 2.5%)</label>
+        <input id="feeBps" class="input" value="250" readonly disabled/>
+
+        <div style="height:10px"></div>
+        <label class="label">Join deadline (minutes) <span class="small">(5–43200)</span></label>
+        <input id="joinMins" class="input" type="number" min="5" max="43200" value="1440"/>
+
+        <div style="height:10px"></div>
+        <label class="label">Resolve deadline (minutes) <span class="small">(30–43200)</span></label>
+        <input id="resolveMins" class="input" type="number" min="30" max="43200" value="4320"/>
+
+        <div style="height:10px"></div>
+        <div class="row"><button id="btnCreate" class="btn primary">Create & Fund</button><button id="btnReset" class="btn">Reset</button></div>
+        <div id="createStatus" class="small" style="margin-top:10px"></div>
+      </div>
+
+      <!-- Middle column -->
+      <div class="grid" style="gap:14px">
+        <div class="card">
+          <h3>Join / Resolve</h3>
+          <div class="small" id="resolveNote" style="margin-top:4px;opacity:.9">Waiting for both votes…</div>
+          <div class="row" style="margin:10px 0">
+            <button id="btnJoin" class="btn">Join & Match Stake</button>
+            <button id="btnRefund" class="btn">Request Refund</button>
+          </div>
+          <div class="grid voteGrid">
+            <div class="card voteCard" style="padding:10px">
+              <div class="voteTitle">Creator vote</div>
+              <div class="row" style="margin-top:6px">
+                <button id="creatorWon" class="btn">Creator won</button>
+                <button id="creatorSaysOpponent" class="btn">Opponent won</button>
+              </div>
+            </div>
+            <div class="card voteCard" style="padding:10px">
+              <div class="voteTitle">Opponent vote</div>
+              <div class="row" style="margin-top:6px">
+                <button id="opponentSaysCreator" class="btn">Creator won</button>
+                <button id="opponentWon" class="btn">Opponent won</button>
+              </div>
+            </div>
+          </div>
+          <div id="actionStatus" class="small" style="margin-top:10px"></div>
+        </div>
+
+        <div class="card">
+          <h3>Bet Ideas</h3>
+          <div class="small">Tap shuffle to get a quick, fair challenge idea you can use IRL.</div>
+          <div class="row" style="margin-top:8px">
+            <input id="ideaBox" class="input" readonly value="Make a 3-point shot from the top of the key"/>
+            <button id="ideaShuffle" class="btn">Shuffle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Share / QR -->
+      <div class="card">
+        <h3>Share / QR</h3>
+        <div class="small">Show this to your opponent so they can open the exact bet.</div>
+        <div class="row" style="margin-top:8px">
+          <input id="betId" class="input" style="width:140px" value="1"/>
+          <input id="shareUrl" class="input" readonly/>
+          <button id="copyBtn" class="btn">Copy link</button>
+        </div>
+        <div id="qrBox" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- Sticky summary -->
+    <div class="stickybar">
+      <div class="stickygrid">
+        <div class="chip state-chip" id="sbState">—</div>
+        <div class="chip">Fee: <strong>2.5%</strong></div>
+        <div class="chip">Pot: <strong><span id="sbPotEth">0.0000</span> ETH</strong> (<span id="sbPotUsd">$0.00</span>)</div>
+        <div class="chip">Winner gets: <strong><span id="sbWinEth">0.0000</span> ETH</strong> (<span id="sbWinUsd">$0.00</span>)</div>
+        <a id="lastTx" class="chip" href="#" target="_blank" style="text-decoration:underline">View on Basescan</a>
+      </div>
+    </div>
+  </div>
+
 <script>
 // ===== CONFIG =====
 const BASE = { idHex:'0x14a34', rpc:'https://sepolia.base.org', explorer:'https://sepolia.basescan.org' };
-const FEE_BPS = 250;                  // locked 2.5%
-let   ETH_USD = 3500;                 // preview only (can be replaced later)
-const CONTRACT_ADDRESS = (document.getElementById('contractAddress')?.value || '').trim();
+const FEE_BPS = 250;                 // locked 2.5%
+let   ETH_USD = 3500;                // preview only
+const CONTRACT_ADDRESS = document.getElementById('contractAddress').value.trim();
 
-// ===== Helpers (UI) =====
-function $(id){ return document.getElementById(id); }
+// ===== Helpers =====
+const $ = (id)=>document.getElementById(id);
 function setState(text){
-  const el = $('sbState'); if (!el) return;
-  el.textContent = text;
+  const el=$('sbState'); el.textContent=text;
   el.classList.add('state-chip');
   if (text.startsWith('Connected')) el.classList.add('state-ok');
 }
 function updatePreview(){
-  const stakeEth = parseFloat($('stake').value || '0') || 0;
-  const pot = stakeEth * 2;
-  const win = pot * (1 - FEE_BPS/10000);
+  const stakeEth = parseFloat($('stake').value||'0')||0;
+  const pot = stakeEth*2;
+  const win = pot*(1 - FEE_BPS/10000);
   $('sbPotEth').textContent = pot.toFixed(4);
   $('sbPotUsd').textContent = `$${(pot*ETH_USD).toFixed(2)}`;
   $('sbWinEth').textContent = win.toFixed(4);
   $('sbWinUsd').textContent = `$${(win*ETH_USD).toFixed(2)}`;
 }
+function syncUsdFromEth(){ const v=parseFloat($('stake').value||'0'); $('stakeUsdInput').value=(v*ETH_USD).toFixed(0); updatePreview(); }
+function syncEthFromUsd(){ const v=parseFloat($('stakeUsdInput').value||'0'); $('stake').value=(v/ETH_USD).toFixed(4); updatePreview(); }
 
-// keep Stake ↔ USD in sync
-function syncUsdFromEth(){
-  const v = parseFloat($('stake').value||'0'); $('stakeUsdInput').value = (v*ETH_USD).toFixed(0); updatePreview();
-}
-function syncEthFromUsd(){
-  const v = parseFloat($('stakeUsdInput').value||'0'); $('stake').value = (v/ETH_USD).toFixed(4); updatePreview();
-}
-
-// ===== QR/share (unchanged layout) =====
-(function initQR(){
+// ===== QR/share + BetID from URL =====
+(function(){
   const betIdEl = $('betId'), shareEl = $('shareUrl'), qrBox = $('qrBox');
-  function makeUrl(){
-    try{ const url = new URL(window.location.href);
-      if (betIdEl.value) url.searchParams.set('bet', String(betIdEl.value).trim());
-      return url.toString();
-    }catch(_){ return window.location.href; }
-  }
+  function makeUrl(){ try{const u=new URL(location.href); if(betIdEl.value) u.searchParams.set('bet', String(betIdEl.value).trim()); return u.toString();}catch(_){return location.href;} }
+  // fill from ?bet=
+  (function(){ const p=new URLSearchParams(location.search); const id=p.get('bet'); if(id){ betIdEl.value=id; }})();
   if (shareEl && !shareEl.value) shareEl.value = makeUrl();
-  function renderQR(){
-    if (!qrBox) return; qrBox.innerHTML='';
-    try{ new QRCode(qrBox,{ text: (shareEl?.value)||makeUrl(), width:140, height:140,
-      colorDark:'#ffffff', colorLight:'#0b1324', correctLevel: QRCode.CorrectLevel.M }); }catch(_){}
-  }
-  // fill Bet ID from ?bet= on page open (for the joiner)
-  (function initBetFromUrl(){
-    const p = new URLSearchParams(location.search); const id = p.get('bet');
-    if (id){ if (betIdEl) betIdEl.value = id; }
-  })();
+  function renderQR(){ if(!qrBox) return; qrBox.innerHTML=''; try{ new QRCode(qrBox,{text:(shareEl?.value)||makeUrl(),width:140,height:140,colorDark:'#ffffff',colorLight:'#0b1324',correctLevel:QRCode.CorrectLevel.M}); }catch(_){ } }
   renderQR();
-  betIdEl?.addEventListener('input', ()=>{ if (shareEl) shareEl.value = makeUrl(); renderQR(); });
+  betIdEl?.addEventListener('input', ()=>{ if(shareEl) shareEl.value=makeUrl(); renderQR(); });
   shareEl?.addEventListener('input', renderQR);
   $('copyBtn')?.addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText(shareEl.value); }catch(_){ } });
 })();
 
-// ===== Ethers / Wallet =====
+// ===== Wallet / Ethers =====
 let provider, signer;
-async function ensure
+async function ensureBase(){
+  if (!window.ethereum) { alert('MetaMask not found'); throw new Error('no wallet'); }
+  const chainId = await window.ethereum.request({ method:'eth_chainId' });
+  if (chainId !== BASE.idHex){
+    try { await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE.idHex }] }); }
+    catch(e){
+      if (e.code===4902){
+        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: BASE.idHex, chainName:'Base Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer] }] });
+      } else { throw e; }
+    }
+  }
+}
+async function connect(){
+  try{
+    await ensureBase();
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send('eth_requestAccounts', []);
+    signer = await provider.getSigner();
+    setState('Connected');
+  }catch(e){
+    $('sbState').textContent = '—';
+  }
+}
+async function getContract(){
+  if (!signer) await connect();
+  const ABI = [
+    {type:'function',stateMutability:'payable',name:'createBet',inputs:[{name:'stakeWei',type:'uint256'},{name:'feeBps',type:'uint16'},{name:'joinWindowSeconds',type:'uint64'},{name:'resolveWindowSeconds',type:'uint64'}],outputs:[{name:'betId',type:'uint256'}]},
+    {type:'function',stateMutability:'payable',name:'joinBet',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
+    {type:'function',stateMutability:'nonpayable',name:'confirmWinner',inputs:[{name:'betId',type:'uint256'},{name:'creatorWon',type:'bool'}],outputs:[]},
+    {type:'function',stateMutability:'nonpayable',name:'refund',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
+    {type:'function',stateMutability:'view',name:'getBet',inputs:[{name:'betId',type:'uint256'}],outputs:[{type:'address'},{type:'address'},{type:'uint256'},{type:'uint16'},{type:'uint64'},{type:'uint64'},{type:'uint64'},{type:'uint8'},{type:'int8'},{type:'int8'}]}
+  ];
+  return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+}
+
+// ===== Actions =====
+async function onCreate(){
+  $('createStatus').textContent='Sending…';
+  try{
+    const c = await getContract();
+    const stakeEth = String($('stake').value||'0');
+    // clamp minutes to valid ranges
+    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'1440',10)));
+    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'4320',10)));
+    $('joinMins').value = jm; $('resolveMins').value = rm;
+
+    const stakeWei = ethers.parseEther(stakeEth);
+    const tx = await c.createBet(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
+    $('createStatus').textContent = 'Pending ' + tx.hash;
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('createStatus').textContent = '✅ Created (check explorer)';
+    setState('Connected • Created');
+  }catch(e){
+    $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function onJoin(){
+  $('actionStatus').textContent='Sending…';
+  try{
+    const c = await getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    // Read stake from-chain to avoid "stake mismatch"
+    const b = await c.getBet(betId);
+    const stakeWei = b[2]; // uint256 stake
+    const tx = await c.joinBet(betId, { value: stakeWei });
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Joined bet #' + betId;
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function onVote(creatorWon){
+  $('actionStatus').textContent='Sending…';
+  try{
+    const c = await getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const tx = await c.confirmWinner(betId, Boolean(creatorWon));
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Vote submitted';
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function onRefund(){
+  $('actionStatus').textContent='Sending…';
+  try{
+    const c = await getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const tx = await c.refund(betId);
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Refund sent';
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+// ===== Wire UI =====
+window.addEventListener('DOMContentLoaded', ()=>{
+  // connect & chain
+  $('connect').onclick = connect;
+  $('switch').onclick  = ensureBase;
+
+  // stake ↔ USD sync + preview
+  updatePreview();
+  $('stake').addEventListener('input', syncUsdFromEth);
+  $('stakeUsdInput').addEventListener('input', syncEthFromUsd);
+
+  // quick USD buttons
+  $('q1').onclick  = ()=>{ $('stakeUsdInput').value=1;  syncEthFromUsd(); };
+  $('q5').onclick  = ()=>{ $('stakeUsdInput').value=5;  syncEthFromUsd(); };
+  $('q20').onclick = ()=>{ $('stakeUsdInput').value=20; syncEthFromUsd(); };
+
+  // +/- buttons
+  $('stakePlus').onclick = ()=>{ const v=parseFloat($('stake').value||'0')+0.0001; $('stake').value=v.toFixed(4); syncUsdFromEth(); };
+  $('stakeMinus').onclick= ()=>{ const v=Math.max(0, parseFloat($('stake').value||'0')-0.0001); $('stake').value=v.toFixed(4); syncUsdFromEth(); };
+
+  // actions
+  $('btnCreate').onclick = onCreate;
+  $('btnReset').onclick  = ()=>{ $('stake').value='0.05'; $('stakeUsdInput').value='175'; updatePreview(); };
+  $('btnJoin').onclick   = onJoin;
+  $('btnRefund').onclick = onRefund;
+  $('creatorWon').onclick= ()=>onVote(true);
+  $('creatorSaysOpponent').onclick= ()=>onVote(false);
+  $('opponentSaysCreator').onclick= ()=>onVote(true);
+  $('opponentWon').onclick= ()=>onVote(false);
+});
+</script>
+</body>
+</html>
