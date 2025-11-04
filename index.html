@@ -22,7 +22,7 @@
       <h1 class="text-2xl font-bold">🧃 The Juice — Crypto Escrow Bets <span class="text-xs text-gray-400 ml-2">Base Sepolia (84532)</span></h1>
       <div class="flex gap-2">
         <input id="contractAddress" class="mono text-black rounded-md px-3 py-2 w-72" placeholder="0xYourContractAddress" value="0xA235352c02A9EEf99001319fb20a35A8a45479b4" />
-        <button id="connect" class="bg-teal-400 text-black rounded-md px-3 py-2 font-semibold">Connect Wallet</button>
+        <button id="connect" class="bg-white text-black border border-gray-700 shadow rounded-md px-3 py-2 font-semibold">Connect Wallet</button>
         <button id="switch" class="border border-gray-500 rounded-md px-3 py-2">Switch to Base Sepolia</button>
       </div>
     </div>
@@ -41,12 +41,12 @@
           <button class="border rounded-md px-2 py-1" onclick="setQuickUsd(5)">$5</button>
           <button class="border rounded-md px-2 py-1" onclick="setQuickUsd(20)">$20</button>
         </div>
-        <label class="block text-sm mt-3">Fee (bps, min 250)</label>
-        <input id="feeBps" class="w-full rounded-md p-2 text-black" value="250" />
-        <label class="block text-sm mt-3">Join deadline (seconds)</label>
-        <input id="joinSecs" type="number" class="w-full rounded-md p-2 text-black" value="86400" />
-        <label class="block text-sm mt-3">Resolve deadline (seconds)</label>
-        <input id="resolveSecs" type="number" class="w-full rounded-md p-2 text-black" value="259200" />
+        <label class="block text-sm mt-3">Fee (fixed at 2.5%)</label>
+        <input id="feeBps" class="w-full rounded-md p-2 text-black cursor-not-allowed opacity-70" value="250" readonly disabled />
+        <label class="block text-sm mt-3">Join deadline (minutes)</label>
+        <input id="joinMins" type="number" class="w-full rounded-md p-2 text-black" value="1440" />
+        <label class="block text-sm mt-3">Resolve deadline (minutes)</label>
+        <input id="resolveMins" type="number" class="w-full rounded-md p-2 text-black" value="4320" />
         <div class="flex gap-2 mt-3">
           <button id="create" class="bg-green-500 text-black rounded-md px-3 py-2 font-medium">Create & Fund</button>
           <button id="reset" class="border border-gray-500 rounded-md px-3 py-2">Reset</button>
@@ -179,9 +179,9 @@ async function switchChain(){ await ensureChain(); }
 // ------- Actions wired to your existing buttons -------
 async function onCreate(){
   const stakeEth = document.getElementById('stakeEth').value.trim();
-  const feeBps = Math.max(parseInt(document.getElementById('feeBps').value||'0',10), 250);
-  const joinSecs = parseInt(document.getElementById('joinSecs').value||'86400',10);
-  const resolveSecs = parseInt(document.getElementById('resolveSecs').value||'259200',10);
+  const feeBps = 250; // fixed 2.5% fee
+  const joinSecs = parseInt(document.getElementById('joinMins').value||'1440',10) * 60;
+  const resolveSecs = parseInt(document.getElementById('resolveMins').value||'4320',10) * 60;
   document.getElementById('createStatus').textContent = 'Sending…';
   try{
     const c = getContract();
