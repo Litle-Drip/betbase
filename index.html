@@ -25,8 +25,15 @@
         <button id="connect" class="bg-white text-black border border-gray-700 shadow rounded-md px-3 py-2 font-semibold">Connect Wallet</button>
         <button id="switch" class="border border-gray-500 rounded-md px-3 py-2">Switch to Base Sepolia</button>
       </div>
-    </div>
-    <p class="text-gray-400">Create a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee‑free if deadlines pass.</p>
+    <!-- Debug wallet banner -->
+    <div id="dbg" class="text-xs bg-yellow-900 text-yellow-100 rounded-md px-3 py-2 inline-flex items-center gap-2">
+      <span>🦊 Wallet:</span>
+      <span id="dbgDetected">checking…</span>
+      <span>• Network:</span>
+      <span id="dbgChain">—</span>
+      <span>• Address:</span>
+      <span id="dbgAddr">—</span>
+      <button id="dbgReconnect" class="ml-2 px-2 py-1 bg-yellow-200 text-black rounded">ReconnecCreate a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee‑free if deadlines pass.</p>
 
     <div class="grid md:grid-cols-3 gap-4">
       <!-- Create Bet -->
@@ -309,8 +316,25 @@ window.addEventListener('DOMContentLoaded', function(){
   document.getElementById('connect').onclick = connect;
   document.getElementById('switch').onclick = switchChain;
   document.getElementById('create').onclick = onCreate;
-  document.getElementById('reset').onclick = () => { document.getElementById('stakeEth').value='0.05'; document.getElementById('stakeUsd').value='175'; updateDisplay(); };
-  document.getElementById('join').onclick = onJoin;
+  document.getElementById('reset').onclick = () => { document.getElementById('stakeEth').value='0.05'; document.getElementById('stakeUsd').value='175'; updateDisplay(); };// ------- Debug banner helpers -------
+  const _dbgInit = () => {
+    const det = document.getElementById('dbgDetected');
+    const ch = document.getElementById('dbgChain');
+    const ad = document.getElementById('dbgAddr');
+    if (!det) return;
+    const has = !!window.ethereum; det.textContent = has ? 'detected' : 'NOT detected';
+    if (has) {
+      window.ethereum.request({method:'eth_chainId'}).then(id=> ch.textContent = id || '—').catch(()=>{});
+      (async()=>{ try{ if (signer){ const a = await signer.getAddress(); ad.textContent = a.slice(0,6)+'…'+a.slice(-4);} else { ad.textContent='—'; } }catch{ ad.textContent='—'; } })();
+      window.ethereum.on?.('accountsChanged', ()=>{ isConnected=false; signer=null; _dbgInit(); });
+      window.ethereum.on?.('chainChanged', ()=>{ isConnected=false; signer=null; _dbgInit(); });
+      const btn = document.getElementById('dbgReconnect'); if (btn) btn.onclick = connect;
+    }
+  };
+  window.addEventListener('DOMContentLoaded', _dbgInit);
+</script>
+</body>
+</html>ElementById('join').onclick = onJoin;
   document.getElementById('refund').onclick = onRefund;
   document.getElementById('creatorWin1').onclick = () => onVote(true);
   document.getElementById('opponentWin1').onclick = () => onVote(false);
@@ -320,3 +344,4 @@ window.addEventListener('DOMContentLoaded', function(){
 </script>
 </body>
 </html>
+
