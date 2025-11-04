@@ -127,7 +127,7 @@
         <h3>Share / QR</h3>
         <div class="small">Show this to your opponent so they can open the exact bet.</div>
         <div class="row" style="margin-top:8px">
-          <input id="betId" class="input" style="width:140px" value="1"/>
+          <input id="betId" class="input" style="width:140px" value=""/>
           <input id="shareUrl" class="input" readonly/>
           <button id="copyBtn" class="btn">Copy link</button>
         </div>
@@ -155,6 +155,31 @@ let   ETH_USD = 3500;                // preview only
 const CONTRACT_ADDRESS = document.getElementById('contractAddress').value.trim();
 
 // ===== Helpers =====
+  function setBetId(id){
+  const betIdEl = $('betId');
+  const shareEl = $('shareUrl');
+  if (!betIdEl) return;
+  betIdEl.value = String(id);
+  // update share URL
+  try{
+    const u = new URL(location.href);
+    u.searchParams.set('bet', String(id));
+    if (shareEl) shareEl.value = u.toString();
+  }catch(_){}
+  // refresh QR
+  const qrBox = $('qrBox');
+  if (qrBox && window.QRCode){
+    qrBox.innerHTML = '';
+    try{
+      new QRCode(qrBox,{
+        text: shareEl?.value || location.href,
+        width:140,height:140,colorDark:'#ffffff',colorLight:'#0b1324',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }catch(_){}
+  }
+}
+  
 const $ = (id)=>document.getElementById(id);
 function setState(text){
   const el=$('sbState'); el.textContent=text;
@@ -230,22 +255,56 @@ async function onCreate(){
   try{
     const c = await getContract();
     const stakeEth = String($('stake').value||'0');
+
     // clamp minutes to valid ranges
     const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'1440',10)));
     const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'4320',10)));
     $('joinMins').value = jm; $('resolveMins').value = rm;
 
     const stakeWei = ethers.parseEther(stakeEth);
+
+    // 1) predict the betId with a static call
+    let predictedId;
+    try{
+      predictedId = await c.createBet.staticCall(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
+    }catch(e){
+      // some wallets/providers require call overrides separately—fallback if needed
+      predictedId = null;
+    }
+
+    // 2) send the real tx
     const tx = await c.createBet(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
     $('createStatus').textContent = 'Pending ' + tx.hash;
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+
+    // 3) set Bet ID in UI/URL/QR
+    if (predictedId !== null && predictedId !== undefined){
+      setBetId(predictedId.toString());
+    } else {
+      // fallback: try to parse event if present
+      try{
+        const ABI_EVENTS = [ "event BetCreated(uint256 indexed betId,address creator,uint256 stakeWei,uint16 feeBps,uint64 joinWindow,uint64 resolveWindow)" ];
+        const iface = new ethers.Interface(ABI_EVENTS);
+        for (const l of rc.logs||[]){
+          if ((l.address||'').toLowerCase() === c.target.toLowerCase()){
+            const parsed = iface.parseLog(l);
+            if (parsed && parsed.name === 'BetCreated'){
+              setBetId(parsed.args.betId.toString());
+              break;
+            }
+          }
+        }
+      }catch(_){}
+    }
+
     $('createStatus').textContent = '✅ Created (check explorer)';
     setState('Connected • Created');
   }catch(e){
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
 }
+
 
 async function onJoin(){
   $('actionStatus').textContent='Sending…';
