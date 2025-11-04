@@ -44,9 +44,11 @@
         <label class="block text-sm mt-3">Fee (fixed at 2.5%)</label>
         <input id="feeBps" class="w-full rounded-md p-2 text-black cursor-not-allowed opacity-70" value="250" readonly disabled />
         <label class="block text-sm mt-3">Join deadline (minutes)</label>
-        <input id="joinMins" type="number" class="w-full rounded-md p-2 text-black" value="1440" />
+        <input id="joinMins" type="number" min="5" max="43200" class="w-full rounded-md p-2 text-black" value="1440" />
+        <div class="text-xs text-gray-400 mt-1">Allowed: <b>5</b>–<b>43200</b> minutes (5 minutes to 30 days).</div>
         <label class="block text-sm mt-3">Resolve deadline (minutes)</label>
-        <input id="resolveMins" type="number" class="w-full rounded-md p-2 text-black" value="4320" />
+        <input id="resolveMins" type="number" min="30" max="43200" class="w-full rounded-md p-2 text-black" value="4320" />
+        <div class="text-xs text-gray-400 mt-1">Allowed: <b>30</b>–<b>43200</b> minutes (30 minutes to 30 days).</div>
         <div class="flex gap-2 mt-3">
           <button id="create" class="bg-green-500 text-black rounded-md px-3 py-2 font-medium">Create & Fund</button>
           <button id="reset" class="border border-gray-500 rounded-md px-3 py-2">Reset</button>
@@ -178,10 +180,16 @@ async function switchChain(){ await ensureChain(); }
 
 // ------- Actions wired to your existing buttons -------
 async function onCreate(){
+  if (!isConnected) { await connect(); }
+  // Clamp minutes to contract rules
+  const jm = Math.max(5, Math.min(43200, parseInt(document.getElementById('joinMins').value||'1440',10)));
+  const rm = Math.max(30, Math.min(43200, parseInt(document.getElementById('resolveMins').value||'4320',10)));
+  document.getElementById('joinMins').value = jm;
+  document.getElementById('resolveMins').value = rm;
   const stakeEth = document.getElementById('stakeEth').value.trim();
   const feeBps = 250; // fixed 2.5% fee
-  const joinSecs = parseInt(document.getElementById('joinMins').value||'1440',10) * 60;
-  const resolveSecs = parseInt(document.getElementById('resolveMins').value||'4320',10) * 60;
+  const joinSecs = jm * 60;
+  const resolveSecs = rm * 60;
   document.getElementById('createStatus').textContent = 'Sending…';
   try{
     const c = getContract();
@@ -198,7 +206,8 @@ async function onCreate(){
     document.getElementById('lastTx').textContent = 'View on Basescan';
     document.getElementById('createStatus').textContent = '✅ Created bet #' + (betId || '(check explorer)');
   }catch(e){
-    document.getElementById('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+    const msg = (e?.shortMessage||e?.message||e+'');
+    document.getElementById('createStatus').textContent = '❌ ' + msg + (rm < 30 ? ' — Resolve must be ≥ 30 minutes.' : '');
   }
 }
 
