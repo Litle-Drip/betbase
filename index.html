@@ -31,12 +31,19 @@
   .stickybar{position:sticky;bottom:0;z-index:5;background:rgba(11,19,36,.9);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:14px;margin-top:14px;padding:12px}
   .stickygrid{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
   .chip{background:#0b1324;border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;color:#cbd5e1}
-  .contractTag{font-size:12px;color:#a5b4fc;border:1px dashed #4f46e5;border-radius:999px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
   .state-chip{ padding:4px 10px; border-radius:999px; border:1px solid var(--border); }
   .state-ok{ background:#052e16; color:#86efac; border-color:#16a34a; }
   .voteGrid{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;grid-auto-rows:1fr}
   .voteCard{display:flex;flex-direction:column;height:100%}
   .voteTitle{font-size:14px;font-weight:600;color:#e2e8f0;letter-spacing:.2px;margin-bottom:4px}
+  /* Full, copyable contract address */
+  .addrMono{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    background:#0b1324; color:#e2e8f0; border:1px solid var(--border);
+    border-radius:10px; padding:8px 10px; height:36px;
+    width:360px; white-space:nowrap; overflow-x:auto; overflow-y:hidden;
+  }
+  .addrMono::-webkit-scrollbar{ height:6px }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous"></script>
@@ -46,8 +53,10 @@
     <div class="header">
       <div class="brand"><span class="logo">🧃</span><h1>The Juice — Crypto Escrow Bets</h1></div>
       <div class="row">
-        <!-- LOCKED: show, not editable -->
-        <div id="contractTag" class="contractTag" title="Deployed contract">Contract: 0xA235352c02A9EEf99001319fb20a35A8a45479b4</div>
+        <!-- Locked contract address, fully visible + copy -->
+        <label class="label" style="margin-right:6px">Contract:</label>
+        <input id="contractAddr" class="addrMono" value="0xA235352c02A9EEf99001319fb20a35A8a45479b4" readonly />
+        <button id="copyContract" class="btn">Copy</button>
         <button id="connect" class="btn-plain">Connect Wallet</button>
         <button id="switch" class="btn">Switch to Base Sepolia</button>
         <button id="newBet" class="btn">Start New Bet</button>
@@ -62,8 +71,8 @@
       <div class="card">
         <h3>Create Bet</h3>
         <div class="row">
-          <div><label class="label">Stake (ETH)</label><input id="stake" class="input" type="number" step="0.0001" value="0.05" style="width:140px"/></div>
-          <div><label class="label">Stake (USD)</label><input id="stakeUsdInput" class="input" type="number" step="1" value="175" style="width:140px"/></div>
+          <div><label class="label">Stake (ETH)</label><input id="stake" class="input" type="number" step="0.0001" value="0.0014" style="width:140px"/></div>
+          <div><label class="label">Stake (USD)</label><input id="stakeUsdInput" class="input" type="number" step="1" value="5" style="width:140px"/></div>
           <div class="row" style="gap:6px;align-items:flex-end"><button id="stakeMinus" class="btn" title="Decrease">−</button><button id="stakePlus" class="btn" title="Increase">+</button></div>
         </div>
         <div class="row small"><span style="opacity:.9">Set by USD:</span><button class="btn" id="q1">$1</button><button class="btn" id="q5">$5</button><button class="btn" id="q20">$20</button><span style="margin-left:8px">Custom</span><input id="qCustomUsd" class="input" type="number" min="0" step="1" value="10" style="width:100px"/></div>
@@ -75,18 +84,18 @@
 
         <div style="height:10px"></div>
         <label class="label">Join deadline (minutes) <span class="small">(5–43200)</span></label>
-        <input id="joinMins" class="input" type="number" min="5" max="43200" value="1440"/>
+        <input id="joinMins" class="input" type="number" min="5" max="43200" value="15"/>
 
         <div style="height:10px"></div>
         <label class="label">Resolve deadline (minutes) <span class="small">(30–43200)</span></label>
-        <input id="resolveMins" class="input" type="number" min="30" max="43200" value="4320"/>
+        <input id="resolveMins" class="input" type="number" min="30" max="43200" value="30"/>
 
         <div style="height:10px"></div>
         <div class="row"><button id="btnCreate" class="btn primary">Create & Fund</button><button id="btnReset" class="btn">Reset</button></div>
         <div id="createStatus" class="small" style="margin-top:10px"></div>
       </div>
 
-      <!-- Middle column -->
+      <!-- Join / Resolve -->
       <div class="grid" style="gap:14px">
         <div class="card">
           <h3>Join / Resolve</h3>
@@ -126,7 +135,7 @@
         </div>
       </div>
 
-      <!-- Right: Share / QR -->
+      <!-- Share / QR -->
       <div class="card">
         <h3>Share / QR</h3>
         <div class="small">Show this to your opponent so they can open the exact bet.</div>
@@ -179,20 +188,14 @@ function syncEthFromUsd(){ const v=parseFloat($('stakeUsdInput').value||'0'); $(
 
 // ===== URL/QR helpers =====
 function ensureShareDefaults(){
-  // If there is no betId yet, show page URL and render QR for it
   const shareEl = $('shareUrl');
   if (shareEl && !shareEl.value){
-    try{
-      const u = new URL(location.href);
-      u.searchParams.delete('bet');
-      shareEl.value = u.toString();
-    }catch(_){}
+    try{ const u=new URL(location.href); u.searchParams.delete('bet'); shareEl.value=u.toString(); }catch(_){}
   }
   renderQR();
 }
 function setBetId(id){
-  const betIdEl = $('betId');
-  const shareEl = $('shareUrl');
+  const betIdEl = $('betId'); const shareEl = $('shareUrl');
   if (betIdEl) betIdEl.value = String(id);
   try{
     const u = new URL(location.href);
@@ -203,29 +206,17 @@ function setBetId(id){
   renderQR();
 }
 function clearBetFromUrl(){
-  try{
-    const u = new URL(location.href);
-    u.searchParams.delete('bet');
-    history.replaceState(null, '', u.toString());
-  }catch(_){}
+  try{ const u=new URL(location.href); u.searchParams.delete('bet'); history.replaceState(null,'',u.toString()); }catch(_){}
   const shareEl = $('shareUrl');
   if (shareEl){
-    try{
-      const u = new URL(location.href);
-      u.searchParams.delete('bet');
-      shareEl.value = u.toString();
-    }catch(_){}
+    try{ const u=new URL(location.href); u.searchParams.delete('bet'); shareEl.value=u.toString(); }catch(_){}
   }
   renderQR();
 }
 function renderQR(){
-  const qrBox = $('qrBox');
-  const shareEl = $('shareUrl');
-  if (!qrBox) return;
-  qrBox.innerHTML = '';
-  if (!window.QRCode){
-    const div=document.createElement('div'); div.className='qrHint'; div.textContent='QR library not loaded.'; qrBox.appendChild(div); return;
-  }
+  const qrBox = $('qrBox'); const shareEl = $('shareUrl');
+  if (!qrBox) return; qrBox.innerHTML='';
+  if (!window.QRCode){ const d=document.createElement('div'); d.className='qrHint'; d.textContent='QR library not loaded.'; qrBox.appendChild(d); return; }
   const text = (shareEl && shareEl.value) ? shareEl.value : location.href;
   new QRCode(qrBox,{ text, width:140, height:140, colorDark:'#ffffff', colorLight:'#0b1324', correctLevel: QRCode.CorrectLevel.M });
 }
@@ -233,11 +224,7 @@ function renderQR(){
 // ===== Initial QR and ?bet= load =====
 (function initQR(){
   const betIdEl = $('betId'), shareEl = $('shareUrl');
-  try{
-    const p=new URLSearchParams(location.search); const id=p.get('bet'); 
-    if (id && betIdEl){ betIdEl.value=id; }
-  }catch(_){}
-  // Always show *something* in the share URL
+  try{ const p=new URLSearchParams(location.search); const id=p.get('bet'); if (id && betIdEl){ betIdEl.value=id; } }catch(_){}
   ensureShareDefaults();
   betIdEl?.addEventListener('input', ()=>{
     try{
@@ -308,7 +295,7 @@ async function readBetStatus(betId, c){
   const cVote   = Number(b[8]);
   const oVote   = Number(b[9]);
   const joined  = opponent && opponent !== ethers.ZeroAddress;
-  const votesMatch = (cVote === oVote) && (cVote !== 0); // adjust if your encoding differs
+  const votesMatch = (cVote === oVote) && (cVote !== 0);
   return { creator, opponent, stakeWei, feeBps, state, cVote, oVote, joined, votesMatch };
 }
 async function refreshBetStatus(){
@@ -349,12 +336,11 @@ async function onCreate(){
     const c = await getContract();
     const stakeEth = String($('stake').value||'0');
 
-    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'1440',10)));
-    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'4320',10)));
+    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'15',10)));
+    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'30',10)));
     $('joinMins').value = jm; $('resolveMins').value = rm;
     const stakeWei = ethers.parseEther(stakeEth);
 
-    // predict betId (static call)
     let predictedId = null;
     try{
       predictedId = await c.createBet.staticCall(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
@@ -365,12 +351,10 @@ async function onCreate(){
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
 
-    // Prefer predictedId. If unavailable, try to parse from receipt logs (best-effort).
     if (predictedId !== null && predictedId !== undefined){
       setBetId(predictedId.toString());
       try{ localStorage.setItem('lastCreatedBetId', String(predictedId)); }catch(_){}
     } else {
-      // Fallback: keep current URL/no bet; at least QR/link show page URL
       ensureShareDefaults();
     }
 
@@ -466,6 +450,14 @@ async function onRefund(){
 
 // ===== Wire UI =====
 window.addEventListener('DOMContentLoaded', ()=>{
+  // Copyable contract address (kept in sync with constant)
+  const addrInput = $('contractAddr');
+  if (addrInput) addrInput.value = CONTRACT_ADDRESS;
+  const copyBtn = $('copyContract');
+  if (copyBtn) copyBtn.onclick = async () => {
+    try { await navigator.clipboard.writeText(CONTRACT_ADDRESS); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1200); } catch(_){}
+  };
+
   $('connect').onclick = connect;
   $('switch').onclick  = ensureBase;
   $('newBet').onclick  = ()=>{
@@ -474,11 +466,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
     $('createStatus').textContent = '';
     $('actionStatus').textContent = '';
     $('betStatus').textContent = 'Status: —';
-    $('stake').value='0.05'; $('stakeUsdInput').value='175';
-    updatePreview();
+    // Reset to $5 defaults
+    $('stakeUsdInput').value='5';
+    syncEthFromUsd(); // updates ETH and preview
   };
 
-  updatePreview();
+  // Set preview from default $5
+  syncEthFromUsd();
+
   $('stake').addEventListener('input', syncUsdFromEth);
   $('stakeUsdInput').addEventListener('input', syncEthFromUsd);
 
@@ -490,7 +485,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('stakeMinus').onclick= ()=>{ const v=Math.max(0, parseFloat($('stake').value||'0')-0.0001); $('stake').value=v.toFixed(4); syncUsdFromEth(); };
 
   $('btnCreate').onclick = onCreate;
-  $('btnReset').onclick  = ()=>{ $('stake').value='0.05'; $('stakeUsdInput').value='175'; updatePreview(); };
+  $('btnReset').onclick  = ()=>{ $('stakeUsdInput').value='5'; syncEthFromUsd(); $('joinMins').value='15'; $('resolveMins').value='30'; };
   $('btnJoin').onclick   = onJoin;
   $('btnRefund').onclick = onRefund;
   $('btnResolve').onclick= onResolve;
@@ -499,7 +494,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('opponentSaysCreator').onclick= ()=>onVote(true);
   $('opponentWon').onclick= ()=>onVote(false);
 
-  // initial status + initial QR/link defaults
   ensureShareDefaults();
   refreshBetStatus();
 });
