@@ -251,7 +251,17 @@ if (window.ethereum){
     await detectNetworkUI();
   });
 }
-
+// Detect if the user switches wallet accounts
+if (window.ethereum){
+  window.ethereum.on?.('accountsChanged', async (_accounts)=>{
+    signer = null; // force re-fetch on next action
+    setState('—');
+    const connectBtn = $('connect');
+    if (connectBtn) connectBtn.classList.remove('btn-connected');
+    await detectNetworkUI();
+    $('actionStatus').textContent = '🔄 Account changed — please reconnect.';
+  });
+}
 /* -------- Contract -------- */
 async function getContract(){
   if (!signer) await connect();
@@ -351,6 +361,10 @@ async function onJoin(){
     if (info.state === 2) return humanError('Bet is already resolved.');
     if (info.state === 3) return humanError('Bet was refunded/cancelled.');
     if (info.joined)      return humanError('Bet already has an opponent.');
+    const me = (await signer.getAddress()).toLowerCase();
+if (info.creator && info.creator.toLowerCase() === me) {
+  return humanError('Creator cannot join their own bet.');
+}
     const tx = await c.joinBet(betId, { value: info.stakeWei });
     const rc = await tx.wait();
     $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
