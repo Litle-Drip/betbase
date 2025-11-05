@@ -293,11 +293,19 @@ async function refreshBetStatus(){
       $('btnJoin').disabled = true;
       ['creatorWon','creatorSaysOpponent','opponentSaysCreator','opponentWon'].forEach(id=>{ const b=$(`${id}`); if(b) b.disabled=true; });
     } else {
-      $('resolveNote').textContent = 'Waiting for both votes…';
+      $('resolveNote').textContent = (info.joined && info.votesMatch) 
+  ? '✅ Both votes match — finalize payout when ready.'
+  : 'Waiting for both votes…';
       $('btnJoin').disabled = false;
       ['creatorWon','creatorSaysOpponent','opponentSaysCreator','opponentWon'].forEach(id=>{ const b=$(`${id}`); if(b) b.disabled=false; });
     }
-    $('btnResolve').disabled = !(info.joined && info.votesMatch && info.state !== 2);
+    const canResolve = (info.joined && info.votesMatch && info.state !== 2);
+$('btnResolve').disabled = !canResolve;
+const rbtn = $('btnResolve');
+if (rbtn) { 
+  if (canResolve) { rbtn.classList.add('ready'); }
+  else            { rbtn.classList.remove('ready'); }
+}
   }catch(e){
     $('betStatus').textContent = 'Status: (read error)';
     $('btnResolve').disabled = true;
@@ -379,7 +387,21 @@ async function onResolve(){
     const rc = await tx.wait();
     $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     $('actionStatus').textContent = '✅ Resolved & paid (check explorer)';
-    await refreshBetStatus();
+    await refreshBetStatus(); try {
+  // Re-read for amounts
+  const betIdStr = ($('betId').value||'').trim();
+  const betId = BigInt(betIdStr);
+  const c = await getContract();
+  const b = await c.getBet(betId);
+  const stakeEth = Number(ethers.formatEther(b[2]));   // stakeWei
+  const feeBps   = Number(b[3]);                       // feeBps (250 = 2.5%)
+  const pot      = stakeEth * 2;
+  const feeEth   = pot * (feeBps / 10000);
+  const winEth   = pot - feeEth;
+
+  // quick toast helper already in file (toast())
+  toast(`Sent ${winEth.toFixed(6)} ETH to winner • ${feeEth.toFixed(6)} ETH to treasury`);
+} catch (_) {}
   }catch(e){ humanError(e?.shortMessage||e?.message||'Resolve failed'); }
 }
 
