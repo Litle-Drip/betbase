@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>The Juice — Crypto Escrow Bets</title>
   <style>
-  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2a44;--accent:#22c55e;}
+  :root{--bg:#0b1220;--card:#0f172a;--text:#e2e8f0;--muted:#94a3b8;--border:#1f2a44;--accent:#22c55e;}
   *{box-sizing:border-box}
   body{margin:0;background:linear-gradient(180deg,#0b1220,#0a0f1a);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text)}
   .container{max-width:1200px;margin:20px auto;padding:0 16px}
@@ -19,9 +19,11 @@
   @media(min-width:900px){.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .label{font-size:13px;color:var(--muted)}
   .input{width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;background:#0b1324;color:var(--text)}
-  .btn{padding:9px 13px;border:1px solid var(--accent);background:#0b1324;border-radius:12px;color:#d1fae5;cursor:pointer;transition:transform .06s ease, box-shadow .12s ease}
+  .btn{padding:9px 13px;border:1px solid var(--accent);background:#0b1324;border-radius:12px;color:#d1fae5;cursor:pointer;transition:transform .06s ease, box-shadow .12s ease, background .2s ease, border-color .2s ease, color .2s ease}
   .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
   .btn-plain{background:#fff;color:#111;border:1px solid #1f2937;border-radius:12px;padding:9px 13px;font-weight:600}
+  .btn-connected{background:#16a34a !important;border-color:#16a34a !important;color:#052e16 !important}
+  .btn-highlight{background:#16a34a !important;border-color:#16a34a !important;color:#052e16 !important}
   .pulse{animation:pulse .7s ease 1}
   @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -38,7 +40,6 @@
   .voteGrid{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;grid-auto-rows:1fr}
   .voteCard{display:flex;flex-direction:column;height:100%}
   .voteTitle{font-size:14px;font-weight:600;color:#e2e8f0;letter-spacing:.2px;margin-bottom:4px}
-  /* Full, copyable contract address */
   .addrMono{
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     background:#0b1324; color:#e2e8f0; border:1px solid var(--border);
@@ -46,9 +47,7 @@
     width:360px; white-space:nowrap; overflow-x:auto; overflow-y:hidden;
   }
   .addrMono::-webkit-scrollbar{ height:6px }
-
-  /* Toast */
-  .toast{position:fixed;right:16px;top:16px;background:#0b1324;border:1px solid #2dd4bf;color:#e2e8f0;padding:10px 14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transform:translateY(-6px);transition:all .25s ease;z-index:9999}
+  .toast{position:fixed;right:16px;top:16px;background:#0b1324;border:1px solid #22c55e;color:#e2e8f0;padding:10px 14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transform:translateY(-6px);transition:all .25s ease;z-index:9999}
   .toast.show{opacity:1;transform:translateY(0)}
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -59,7 +58,6 @@
     <div class="header">
       <div class="brand"><span class="logo">🧃</span><h1>The Juice — Crypto Escrow Bets</h1></div>
       <div class="row">
-        <!-- Locked contract address, fully visible + copy -->
         <label class="label" style="margin-right:6px">Contract:</label>
         <input id="contractAddr" class="addrMono" value="0xA235352c02A9EEf99001319fb20a35A8a45479b4" readonly />
         <button id="copyContract" class="btn">Copy</button>
@@ -69,8 +67,7 @@
       </div>
     </div>
 
-    <!-- Network pill updates live -->
-    <div id="netPill" class="pill">Base • Sepolia • (84532)</div>
+    <div id="netPill" class="pill">Network: —</div>
     <p class="small" style="margin-top:10px">Create a bet, your friend joins and matches the stake, you both confirm the winner, and payout happens. Refunds are fee-free.</p>
 
     <div class="grid grid-3">
@@ -162,76 +159,94 @@
         <div class="chip">Fee: <strong>2.5%</strong></div>
         <div class="chip">Pot: <strong><span id="sbPotEth">0.0000</span> ETH</strong> (<span id="sbPotUsd">$0.00</span>)</div>
         <div class="chip">Winner gets: <strong><span id="sbWinEth">0.0000</span> ETH</strong> (<span id="sbWinUsd">$0.00</span>)</div>
-        <a id="lastTx" class="chip" href="#" target="_blank" style="text-decoration:underline">View on Basescan</a>
+        <a id="lastTx" class="chip" href="#" target="_blank" style="text-decoration:underline">View on Explorer</a>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast"></div>
 
 <script>
-const BASE = { idHex:'0x14a34', rpc:'https://sepolia.base.org', explorer:'https://sepolia.basescan.org' };
+/* -------- Networks -------- */
+const BASE_MAIN = { name:'Base Mainnet', idHex:'0x2105', rpc:'https://mainnet.base.org', explorer:'https://basescan.org' };
+const BASE_SEP  = { name:'Base Sepolia', idHex:'0x14a34', rpc:'https://sepolia.base.org', explorer:'https://sepolia.basescan.org' };
+const TARGET    = BASE_SEP; // our "Switch" button targets Sepolia on purpose
+
 const FEE_BPS = 250;
 let   ETH_USD = 3500; // preview only
 const CONTRACT_ADDRESS = '0xA235352c02A9EEf99001319fb20a35A8a45479b4'; // LOCKED
 
+/* -------- Shortcuts -------- */
 const $ = (id)=>document.getElementById(id);
 function toast(msg){ const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
 function setState(text){ const el=$('sbState'); el.textContent=text; el.classList.add('state-chip'); if (text.startsWith('Connected')) el.classList.add('state-ok'); }
-function setNetPill(text){ const p=$('netPill'); if(!p) return; p.textContent=text; p.classList.add('pulse'); setTimeout(()=>p.classList.remove('pulse'),500); }
+function setNetPillConnected(n){ const p=$('netPill'); if(!p) return; p.textContent=`✅ ${n.name} (${parseInt(n.idHex,16)})`; p.classList.add('pulse'); setTimeout(()=>p.classList.remove('pulse'),500); }
+function setNetPillWarn(txt){ const p=$('netPill'); if(!p) return; p.textContent=txt; p.classList.add('pulse'); setTimeout(()=>p.classList.remove('pulse'),500); }
+function highlight(el){ if(!el) return; el.classList.add('btn-highlight'); setTimeout(()=>el.classList.remove('btn-highlight'),900); }
 function updatePreview(){ const se=parseFloat($('stake').value||'0')||0; const pot=se*2; const win=pot*(1-FEE_BPS/10000); $('sbPotEth').textContent=pot.toFixed(4); $('sbPotUsd').textContent=`$${(pot*ETH_USD).toFixed(2)}`; $('sbWinEth').textContent=win.toFixed(4); $('sbWinUsd').textContent=`$${(win*ETH_USD).toFixed(2)}`; }
 function syncUsdFromEth(){ const v=parseFloat($('stake').value||'0'); $('stakeUsdInput').value=(v*ETH_USD).toFixed(0); updatePreview(); }
 function syncEthFromUsd(){ const v=parseFloat($('stakeUsdInput').value||'0'); $('stake').value=(v/ETH_USD).toFixed(4); updatePreview(); }
 
+/* -------- URL/QR helpers -------- */
 function ensureShareDefaults(){ const shareEl=$('shareUrl'); if(shareEl && !shareEl.value){ try{ const u=new URL(location.href); u.searchParams.delete('bet'); shareEl.value=u.toString(); }catch(_){}} renderQR(); }
 function setBetId(id){ const betIdEl=$('betId'), shareEl=$('shareUrl'); if(betIdEl) betIdEl.value=String(id); try{ const u=new URL(location.href); u.searchParams.set('bet', String(id)); if(shareEl) shareEl.value=u.toString(); history.replaceState(null,'',u.toString()); }catch(_){ } renderQR(); }
 function clearBetFromUrl(){ try{ const u=new URL(location.href); u.searchParams.delete('bet'); history.replaceState(null,'',u.toString()); }catch(_){} const shareEl=$('shareUrl'); if(shareEl){ try{ const u=new URL(location.href); u.searchParams.delete('bet'); shareEl.value=u.toString(); }catch(_){} } renderQR(); }
 function renderQR(){ const qrBox=$('qrBox'), shareEl=$('shareUrl'); if(!qrBox) return; qrBox.innerHTML=''; if(!window.QRCode){ const d=document.createElement('div'); d.className='qrHint'; d.textContent='QR library not loaded.'; qrBox.appendChild(d); return; } const text=(shareEl && shareEl.value)?shareEl.value:location.href; new QRCode(qrBox,{ text, width:140, height:140, colorDark:'#ffffff', colorLight:'#0b1324', correctLevel: QRCode.CorrectLevel.M }); }
 
-(function initQR(){ const betIdEl=$('betId'), shareEl=$('shareUrl'); try{ const p=new URLSearchParams(location.search); const id=p.get('bet'); if(id && betIdEl){ betIdEl.value=id; } }catch(_){} ensureShareDefaults(); betIdEl?.addEventListener('input', ()=>{ try{ const u=new URL(location.href); const id=(betIdEl.value||'').trim(); if(id) u.searchParams.set('bet', id); else u.searchParams.delete('bet'); if(shareEl) shareEl.value=u.toString(); history.replaceState(null,'',u.toString()); }catch(_){} renderQR(); refreshBetStatus(); }); shareEl?.addEventListener('input', renderQR); $('copyBtn')?.addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText(shareEl.value); toast('Link copied'); }catch(_){ } }); })();
+/* -------- Initial QR & ?bet= -------- */
+(function initQR(){ const betIdEl=$('betId'), shareEl=$('shareUrl'); try{ const p=new URLSearchParams(location.search); const id=p.get('bet'); if(id && betIdEl){ betIdEl.value=id; } }catch(_){} ensureShareDefaults(); betIdEl?.addEventListener('input', ()=>{ try{ const u=new URL(location.href); const id=(betIdEl.value||'').trim(); if(id) u.searchParams.set('bet', id); else u.searchParams.delete('bet'); if(shareEl) shareEl.value=u.toString(); history.replaceState(null,'',u.toString()); }catch(_){} renderQR(); refreshBetStatus(); }); shareEl?.addEventListener('input', renderQR); $('copyBtn')?.addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText(shareEl.value); toast('Link copied'); highlight($('copyBtn')); }catch(_){ } }); })();
 
-let provider, signer;
-async function ensureBase(){
+/* -------- Wallet / Ethers -------- */
+let provider, signer, activeNet = null;
+
+async function detectNetworkUI(){
+  try{
+    if (!window.ethereum){ setNetPillWarn('Wallet not found'); return; }
+    const chainId = await window.ethereum.request({ method:'eth_chainId' });
+    if (chainId === BASE_MAIN.idHex){ activeNet = BASE_MAIN; setNetPillConnected(BASE_MAIN); $('lastTx').textContent='View on Basescan'; $('lastTx').href = BASE_MAIN.explorer; }
+    else if (chainId === BASE_SEP.idHex){ activeNet = BASE_SEP; setNetPillConnected(BASE_SEP); $('lastTx').textContent='View on Basescan'; $('lastTx').href = BASE_SEP.explorer; }
+    else { activeNet = { name:'Unknown Network', idHex:chainId }; setNetPillWarn('⚠ Different network detected'); }
+  }catch(_){ setNetPillWarn('Network: —'); }
+}
+
+async function ensureTargetSepolia(){
   if (!window.ethereum) { alert('MetaMask not found'); throw new Error('no wallet'); }
   const switchBtn = $('switch'); if (switchBtn) { switchBtn.classList.add('pulse'); setTimeout(()=>switchBtn.classList.remove('pulse'),500); }
   const chainId = await window.ethereum.request({ method:'eth_chainId' });
-  if (chainId !== BASE.idHex){
+  if (chainId !== BASE_SEP.idHex){
     try {
-      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE.idHex }] });
-      setNetPill('✅ Connected to Base Sepolia Test Network');
-      toast('Switched to Base Sepolia Test Network');
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE_SEP.idHex }] });
+      setNetPillConnected(BASE_SEP); toast('Switched to Base Sepolia');
+      activeNet = BASE_SEP;
     } catch(e){
       if (e.code===4902){
-        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: BASE.idHex, chainName:'Base Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer] }] });
-        setNetPill('✅ Base Sepolia (added)');
-        toast('Base Sepolia added');
+        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: BASE_SEP.idHex, chainName:'Base Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:[BASE_SEP.rpc], blockExplorerUrls:[BASE_SEP.explorer] }] });
+        setNetPillConnected(BASE_SEP); toast('Base Sepolia added'); activeNet = BASE_SEP;
       } else { throw e; }
     }
-  } else {
-    setNetPill('✅ Already on Base Sepolia Test Network');
-    toast('Already on Base Sepolia');
-  }
+  } else { setNetPillConnected(BASE_SEP); toast('Already on Base Sepolia'); activeNet = BASE_SEP; }
 }
+
 async function connect(){
   try{
-    await ensureBase();
+    await detectNetworkUI();
     provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
     signer = await provider.getSigner();
     setState('Connected');
-    refreshBetStatus();
+    const connectBtn = $('connect'); if (connectBtn) connectBtn.classList.add('btn-connected');
+    await refreshBetStatus();
   }catch(e){
     $('sbState').textContent = '—';
   }
 }
 if (window.ethereum){
-  window.ethereum.on?.('chainChanged', (cid)=>{
-    if (cid === BASE.idHex){ setNetPill('✅ Connected to Base Sepolia Test Network'); toast('Switched to Base Sepolia'); }
-    else { setNetPill('⚠ Different network detected'); }
+  window.ethereum.on?.('chainChanged', async (cid)=>{
+    await detectNetworkUI();
   });
 }
 
+/* -------- Contract -------- */
 async function getContract(){
   if (!signer) await connect();
   const ABI = [
@@ -245,6 +260,7 @@ async function getContract(){
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 }
 
+/* -------- Status helpers -------- */
 function humanError(msg){ const el=$('actionStatus') || $('createStatus'); if (el) el.textContent = '❌ ' + msg; }
 async function readBetStatus(betId, c){
   const b = await c.getBet(betId);
@@ -282,8 +298,11 @@ async function refreshBetStatus(){
   }
 }
 
+/* -------- Actions -------- */
 async function onCreate(){
+  const createBtn = $('btnCreate');
   $('createStatus').textContent='Sending…';
+  highlight(createBtn);
   try{
     const c = await getContract();
     const stakeEth = String($('stake').value||'0');
@@ -295,16 +314,18 @@ async function onCreate(){
     const tx = await c.createBet(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
     $('createStatus').textContent = 'Pending ' + tx.hash;
     const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     if (predictedId !== null && predictedId !== undefined){ setBetId(predictedId.toString()); try{ localStorage.setItem('lastCreatedBetId', String(predictedId)); }catch(_){} } else { ensureShareDefaults(); }
     $('createStatus').textContent = '✅ Created (check explorer)';
     setState('Connected • Created');
+    createBtn.classList.add('btn-connected'); // keep green after create
     await refreshBetStatus();
   }catch(e){
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
     ensureShareDefaults();
   }
 }
+
 async function onJoin(){
   $('actionStatus').textContent='Sending…';
   try{
@@ -318,11 +339,12 @@ async function onJoin(){
     if (info.joined)      return humanError('Bet already has an opponent.');
     const tx = await c.joinBet(betId, { value: info.stakeWei });
     const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     $('actionStatus').textContent = '✅ Joined bet #' + betId;
     await refreshBetStatus();
   }catch(e){ humanError(e?.shortMessage||e?.message||'Join failed'); }
 }
+
 async function onVote(creatorWon){
   $('actionStatus').textContent='Sending…';
   try{
@@ -332,11 +354,12 @@ async function onVote(creatorWon){
     const info = await readBetStatus(betId, c); if (info.state === 2) return humanError('Already resolved.');
     const tx = await c.confirmWinner(betId, Boolean(creatorWon));
     const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     $('actionStatus').textContent = '✅ Vote submitted';
     await refreshBetStatus();
   }catch(e){ humanError(e?.shortMessage||e?.message||'Vote failed'); }
 }
+
 async function onResolve(){
   $('actionStatus').textContent='Sending…';
   try{
@@ -348,11 +371,12 @@ async function onResolve(){
     if (!info.votesMatch) return humanError('Both votes must match to resolve.');
     const tx = await c.resolve(betId);
     const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     $('actionStatus').textContent = '✅ Resolved & paid (check explorer)';
     await refreshBetStatus();
   }catch(e){ humanError(e?.shortMessage||e?.message||'Resolve failed'); }
 }
+
 async function onRefund(){
   $('actionStatus').textContent='Sending…';
   try{
@@ -361,20 +385,23 @@ async function onRefund(){
     const betId = BigInt(betIdStr);
     const tx = await c.refund(betId);
     const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('lastTx').href = (activeNet?.explorer || BASE_SEP.explorer) + '/tx/' + tx.hash;
     $('actionStatus').textContent = '✅ Refund sent';
     await refreshBetStatus();
   }catch(e){ humanError(e?.shortMessage||e?.message||'Refund failed'); }
 }
 
-window.addEventListener('DOMContentLoaded', ()=>{
+/* -------- Wire UI -------- */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  // Set contract field + copy
   const addrInput = $('contractAddr'); if (addrInput) addrInput.value = CONTRACT_ADDRESS;
-  const copyBtn = $('copyContract'); if (copyBtn) copyBtn.onclick = async () => { try { await navigator.clipboard.writeText(CONTRACT_ADDRESS); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1200); } catch(_){} };
+  const copyContractBtn = $('copyContract'); if (copyContractBtn) copyContractBtn.onclick = async () => { try { await navigator.clipboard.writeText(CONTRACT_ADDRESS); toast('Contract copied'); highlight(copyContractBtn); } catch(_){} };
 
   $('connect').onclick = connect;
-  $('switch').onclick  = ensureBase;
+  $('switch').onclick  = ensureTargetSepolia;
   $('newBet').onclick  = ()=>{ clearBetFromUrl(); $('betId').value = ''; $('createStatus').textContent = ''; $('actionStatus').textContent = ''; $('betStatus').textContent = 'Status: —'; $('stakeUsdInput').value='5'; syncEthFromUsd(); };
 
+  // Default $5 → ETH preview
   syncEthFromUsd();
   $('stake').addEventListener('input', syncUsdFromEth);
   $('stakeUsdInput').addEventListener('input', syncEthFromUsd);
@@ -394,8 +421,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('opponentSaysCreator').onclick= ()=>onVote(true);
   $('opponentWon').onclick= ()=>onVote(false);
 
-  ensureShareDefaults();
-  refreshBetStatus();
+  await detectNetworkUI(); // show current network on load
 });
 </script>
 </body>
