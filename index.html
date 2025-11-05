@@ -9,7 +9,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:linear-gradient(180deg,#0b1220,#0a0f1a);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text)}
   .container{max-width:1200px;margin:20px auto;padding:0 16px}
-  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
   h1{font-size:26px;margin:0}
   .brand{display:flex;align-items:center;gap:10px}
   .brand span.logo{font-size:26px}
@@ -31,7 +31,6 @@
   .stickygrid{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
   .chip{background:#0b1324;border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;color:#cbd5e1}
   .addr{background:#0b1324;color:#e2e8f0;border:1px solid var(--border);border-radius:10px;padding:8px 10px;width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* State chip turns green when connected/created */
   .state-chip{ padding:4px 10px; border-radius:999px; border:1px solid var(--border); }
   .state-ok{ background:#052e16; color:#86efac; border-color:#16a34a; }
   .voteGrid{grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;grid-auto-rows:1fr}
@@ -39,7 +38,7 @@
   .voteTitle{font-size:14px;font-weight:600;color:#e2e8f0;letter-spacing:.2px;margin-bottom:4px}
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <div class="container">
@@ -92,6 +91,8 @@
           <div class="row" style="margin:10px 0">
             <button id="btnJoin" class="btn">Join & Match Stake</button>
             <button id="btnRefund" class="btn">Request Refund</button>
+            <!-- NEW: manual resolve -->
+            <button id="btnResolve" class="btn">Resolve Payout</button>
           </div>
           <div class="grid voteGrid">
             <div class="card voteCard" style="padding:10px">
@@ -109,6 +110,8 @@
               </div>
             </div>
           </div>
+          <!-- NEW: simple status line -->
+          <div class="small" id="betStatus" style="margin-top:6px;opacity:.9">Status: —</div>
           <div id="actionStatus" class="small" style="margin-top:10px"></div>
         </div>
 
@@ -155,31 +158,6 @@ let   ETH_USD = 3500;                // preview only
 const CONTRACT_ADDRESS = document.getElementById('contractAddress').value.trim();
 
 // ===== Helpers =====
-  function setBetId(id){
-  const betIdEl = $('betId');
-  const shareEl = $('shareUrl');
-  if (!betIdEl) return;
-  betIdEl.value = String(id);
-  // update share URL
-  try{
-    const u = new URL(location.href);
-    u.searchParams.set('bet', String(id));
-    if (shareEl) shareEl.value = u.toString();
-  }catch(_){}
-  // refresh QR
-  const qrBox = $('qrBox');
-  if (qrBox && window.QRCode){
-    qrBox.innerHTML = '';
-    try{
-      new QRCode(qrBox,{
-        text: shareEl?.value || location.href,
-        width:140,height:140,colorDark:'#ffffff',colorLight:'#0b1324',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    }catch(_){}
-  }
-}
-  
 const $ = (id)=>document.getElementById(id);
 function setState(text){
   const el=$('sbState'); el.textContent=text;
@@ -198,16 +176,36 @@ function updatePreview(){
 function syncUsdFromEth(){ const v=parseFloat($('stake').value||'0'); $('stakeUsdInput').value=(v*ETH_USD).toFixed(0); updatePreview(); }
 function syncEthFromUsd(){ const v=parseFloat($('stakeUsdInput').value||'0'); $('stake').value=(v/ETH_USD).toFixed(4); updatePreview(); }
 
-// ===== QR/share + BetID from URL =====
+// keep QR + links in sync
+function setBetId(id){
+  const betIdEl = $('betId');
+  const shareEl = $('shareUrl');
+  if (!betIdEl) return;
+  betIdEl.value = String(id);
+  try{
+    const u = new URL(location.href);
+    u.searchParams.set('bet', String(id));
+    if (shareEl) shareEl.value = u.toString();
+  }catch(_){}
+  // refresh QR
+  const qrBox = $('qrBox');
+  if (qrBox && window.QRCode){
+    qrBox.innerHTML = '';
+    try{
+      new QRCode(qrBox,{ text: shareEl?.value || location.href, width:140, height:140, colorDark:'#ffffff', colorLight:'#0b1324', correctLevel: QRCode.CorrectLevel.M });
+    }catch(_){}
+  }
+}
+
+// ===== QR/share + BetID from URL (init) =====
 (function(){
   const betIdEl = $('betId'), shareEl = $('shareUrl'), qrBox = $('qrBox');
   function makeUrl(){ try{const u=new URL(location.href); if(betIdEl.value) u.searchParams.set('bet', String(betIdEl.value).trim()); return u.toString();}catch(_){return location.href;} }
-  // fill from ?bet=
-  (function(){ const p=new URLSearchParams(location.search); const id=p.get('bet'); if(id){ betIdEl.value=id; }})();
+  const p=new URLSearchParams(location.search); const id=p.get('bet'); if(id){ betIdEl.value=id; }
   if (shareEl && !shareEl.value) shareEl.value = makeUrl();
   function renderQR(){ if(!qrBox) return; qrBox.innerHTML=''; try{ new QRCode(qrBox,{text:(shareEl?.value)||makeUrl(),width:140,height:140,colorDark:'#ffffff',colorLight:'#0b1324',correctLevel:QRCode.CorrectLevel.M}); }catch(_){ } }
   renderQR();
-  betIdEl?.addEventListener('input', ()=>{ if(shareEl) shareEl.value=makeUrl(); renderQR(); });
+  betIdEl?.addEventListener('input', ()=>{ if(shareEl) shareEl.value=makeUrl(); renderQR(); refreshBetStatus(); });
   shareEl?.addEventListener('input', renderQR);
   $('copyBtn')?.addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText(shareEl.value); }catch(_){ } });
 })();
@@ -233,6 +231,7 @@ async function connect(){
     await provider.send('eth_requestAccounts', []);
     signer = await provider.getSigner();
     setState('Connected');
+    refreshBetStatus();
   }catch(e){
     $('sbState').textContent = '—';
   }
@@ -244,9 +243,45 @@ async function getContract(){
     {type:'function',stateMutability:'payable',name:'joinBet',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
     {type:'function',stateMutability:'nonpayable',name:'confirmWinner',inputs:[{name:'betId',type:'uint256'},{name:'creatorWon',type:'bool'}],outputs:[]},
     {type:'function',stateMutability:'nonpayable',name:'refund',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
+    {type:'function',stateMutability:'nonpayable',name:'resolve',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
     {type:'function',stateMutability:'view',name:'getBet',inputs:[{name:'betId',type:'uint256'}],outputs:[{type:'address'},{type:'address'},{type:'uint256'},{type:'uint16'},{type:'uint64'},{type:'uint64'},{type:'uint64'},{type:'uint8'},{type:'int8'},{type:'int8'}]}
   ];
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+}
+
+// ===== Status =====
+function short(addr){ return addr && addr.startsWith('0x') ? addr.slice(0,6)+'…'+addr.slice(-4) : String(addr); }
+
+async function refreshBetStatus(){
+  try{
+    const betIdStr = ($('betId').value||'').trim();
+    if (!betIdStr) { $('betStatus').textContent = 'Status: —'; $('btnResolve').disabled = true; return; }
+    const betId = BigInt(betIdStr);
+    const c = await getContract();
+    const b = await c.getBet(betId);
+    const creator = b[0];
+    const opponent = b[1];
+    const stakeWei = b[2];
+    const feeBps  = Number(b[3]);
+    const state   = Number(b[7]);  // impl-specific
+    const cVote   = Number(b[8]);  // impl-specific
+    const oVote   = Number(b[9]);
+
+    const joined = opponent && opponent !== ethers.ZeroAddress;
+    const votesAgree = (cVote === oVote) && (cVote !== 0); // adjust if contract uses different encoding
+    const stakeEth = Number(ethers.formatEther(stakeWei));
+
+    let label = `Stake ${stakeEth.toFixed(4)} ETH • ` + (joined ? 'Joined' : 'Open');
+    if (votesAgree) label += ' • Votes match';
+    if (state === 2) label += ' • Resolved';
+    if (state === 3) label += ' • Refunded';
+
+    $('betStatus').textContent = 'Status: ' + label;
+    $('btnResolve').disabled = !(joined && votesAgree && state !== 2);
+  }catch(e){
+    $('betStatus').textContent = 'Status: (read error)';
+    $('btnResolve').disabled = true;
+  }
 }
 
 // ===== Actions =====
@@ -256,68 +291,46 @@ async function onCreate(){
     const c = await getContract();
     const stakeEth = String($('stake').value||'0');
 
-    // clamp minutes to valid ranges
     const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'1440',10)));
     const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'4320',10)));
     $('joinMins').value = jm; $('resolveMins').value = rm;
 
     const stakeWei = ethers.parseEther(stakeEth);
 
-    // 1) predict the betId with a static call
-    let predictedId;
+    // predict betId (static call)
+    let predictedId = null;
     try{
       predictedId = await c.createBet.staticCall(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
-    }catch(e){
-      // some wallets/providers require call overrides separately—fallback if needed
-      predictedId = null;
-    }
+    }catch(_){}
 
-    // 2) send the real tx
     const tx = await c.createBet(stakeWei, 250, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
     $('createStatus').textContent = 'Pending ' + tx.hash;
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
 
-    // 3) set Bet ID in UI/URL/QR
     if (predictedId !== null && predictedId !== undefined){
       setBetId(predictedId.toString());
-    } else {
-      // fallback: try to parse event if present
-      try{
-        const ABI_EVENTS = [ "event BetCreated(uint256 indexed betId,address creator,uint256 stakeWei,uint16 feeBps,uint64 joinWindow,uint64 resolveWindow)" ];
-        const iface = new ethers.Interface(ABI_EVENTS);
-        for (const l of rc.logs||[]){
-          if ((l.address||'').toLowerCase() === c.target.toLowerCase()){
-            const parsed = iface.parseLog(l);
-            if (parsed && parsed.name === 'BetCreated'){
-              setBetId(parsed.args.betId.toString());
-              break;
-            }
-          }
-        }
-      }catch(_){}
     }
-
     $('createStatus').textContent = '✅ Created (check explorer)';
     setState('Connected • Created');
+    await refreshBetStatus();
   }catch(e){
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
 }
-
 
 async function onJoin(){
   $('actionStatus').textContent='Sending…';
   try{
     const c = await getContract();
     const betId = BigInt(String($('betId').value||'0'));
-    // Read stake from-chain to avoid "stake mismatch"
     const b = await c.getBet(betId);
-    const stakeWei = b[2]; // uint256 stake
+    const stakeWei = b[2];
     const tx = await c.joinBet(betId, { value: stakeWei });
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Joined bet #' + betId;
+    await refreshBetStatus();
   }catch(e){
     $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
@@ -332,6 +345,22 @@ async function onVote(creatorWon){
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Vote submitted';
+    await refreshBetStatus();
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function onResolve(){
+  $('actionStatus').textContent='Sending…';
+  try{
+    const betId = BigInt(String($('betId').value||'0'));
+    const c = await getContract();
+    const tx = await c.resolve(betId);
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Resolved & paid (check explorer)';
+    await refreshBetStatus();
   }catch(e){
     $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
@@ -346,6 +375,7 @@ async function onRefund(){
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Refund sent';
+    await refreshBetStatus();
   }catch(e){
     $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
@@ -353,33 +383,32 @@ async function onRefund(){
 
 // ===== Wire UI =====
 window.addEventListener('DOMContentLoaded', ()=>{
-  // connect & chain
   $('connect').onclick = connect;
   $('switch').onclick  = ensureBase;
 
-  // stake ↔ USD sync + preview
   updatePreview();
   $('stake').addEventListener('input', syncUsdFromEth);
   $('stakeUsdInput').addEventListener('input', syncEthFromUsd);
 
-  // quick USD buttons
   $('q1').onclick  = ()=>{ $('stakeUsdInput').value=1;  syncEthFromUsd(); };
   $('q5').onclick  = ()=>{ $('stakeUsdInput').value=5;  syncEthFromUsd(); };
   $('q20').onclick = ()=>{ $('stakeUsdInput').value=20; syncEthFromUsd(); };
 
-  // +/- buttons
   $('stakePlus').onclick = ()=>{ const v=parseFloat($('stake').value||'0')+0.0001; $('stake').value=v.toFixed(4); syncUsdFromEth(); };
   $('stakeMinus').onclick= ()=>{ const v=Math.max(0, parseFloat($('stake').value||'0')-0.0001); $('stake').value=v.toFixed(4); syncUsdFromEth(); };
 
-  // actions
   $('btnCreate').onclick = onCreate;
   $('btnReset').onclick  = ()=>{ $('stake').value='0.05'; $('stakeUsdInput').value='175'; updatePreview(); };
   $('btnJoin').onclick   = onJoin;
   $('btnRefund').onclick = onRefund;
+  $('btnResolve').onclick= onResolve;
   $('creatorWon').onclick= ()=>onVote(true);
   $('creatorSaysOpponent').onclick= ()=>onVote(false);
   $('opponentSaysCreator').onclick= ()=>onVote(true);
   $('opponentWon').onclick= ()=>onVote(false);
+
+  // initial status (handles ?bet= from QR)
+  refreshBetStatus();
 });
 </script>
 </body>
