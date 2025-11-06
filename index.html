@@ -69,6 +69,63 @@
           border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:14px}
   .spacer{height:8px}
   .successNote{display:flex;align-items:center;gap:8px;font-size:13px;color:#a7f3d0}
+  /* ===== JUICE POLISH PACK (non-breaking overrides) ===== */
+
+/* Layout & type scale */
+body{font-size:17px; letter-spacing:.1px;}
+.container{max-width:1280px; padding-inline:20px;}
+.grid{gap:16px;}
+@media(min-width:1024px){
+  /* Make Create a bit wider to reduce empty space */
+  .grid-3{grid-template-columns:1.25fr 1fr 1.05fr;}
+}
+
+/* Cards: subtle lift + equal height */
+.card{display:flex; flex-direction:column; height:100%; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25);}
+.card h3{margin:0 0 10px 0; font-size:18px;}
+
+/* Inputs & buttons — consistent sizing */
+.input{height:44px; padding:10px 12px; border-radius:12px; font-size:15px;}
+.btn, .btn-plain{min-height:42px; padding:10px 14px; border-radius:12px; font-weight:600;}
+.btn.primary{box-shadow:0 0 0 0 rgba(34,197,94,.45); transition:box-shadow .15s ease, transform .06s ease;}
+.btn.primary:active{transform:translateY(1px);}
+.btn:disabled{opacity:.6; cursor:not-allowed}
+
+/* “Create & Fund” success glow (sticky but subtle) */
+.btn-created{background:#16a34a !important; border-color:#16a34a !important; color:#052e16 !important;
+  box-shadow:0 0 0 6px rgba(22,163,74,.18) !important;}
+/* Add this class in JS after a successful create() and remove it on Reset or New Bet */
+
+/* Pills / chips */
+.pill,.chip{border-radius:999px; padding:6px 12px; font-size:12.5px}
+
+/* Contract pill: show full, but elide gracefully on small screens */
+.addr, .contract-pill{
+  max-width:560px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  border:1px solid var(--border); background:#0b1324; color:#e2e8f0; padding:8px 10px; border-radius:10px;
+}
+
+/* Join/Resolve layout: tighter vertical rhythm */
+.voteGrid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.voteCard{border:1px solid var(--border); border-radius:12px; background:#0b1324}
+.voteTitle{margin:6px 0 2px; font-weight:700}
+
+/* Button rows inside Join/Resolve */
+.voteCard .row{gap:10px}
+#resolveNote{margin-top:4px; opacity:.9}
+
+/* QR card: keep QR centered and responsive */
+#qrBox{min-width:0; min-height:0; padding:14px; border-radius:12px}
+@media(max-width:640px){ #qrBox{min-height:120px} }
+
+/* Sticky summary bar: tighter & centered */
+.stickybar{padding:10px; border-radius:14px}
+.stickygrid{gap:10px; justify-content:center}
+.chip strong{margin-left:6px}
+
+/* Micro spacing fixes */
+.label{margin-bottom:4px}
+.row{gap:10px}
 </style>
 
 <!-- Libs -->
@@ -215,8 +272,7 @@
 const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'https://sepolia.basescan.org' };
 const FEE_BPS = 250;        // fixed 2.5%
 let   ETH_USD = 3500;       // preview only
-const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // <— change if you redeploy
-
+const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // UPDATED (Base Sepolia Verified)
 /* ---------- Shortcuts ---------- */
 const $ = id => document.getElementById(id);
 const fmtUsd = v => '$' + v.toFixed(2);
@@ -313,7 +369,8 @@ async function doCreate(){
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('createStatus').textContent = '✅ Created (check explorer)';
-    $('btnCreate').classList.add('connected');
+    document.getElementById('btnCreate').classList.add('btn-created');
+    $('btnCreate').classList.add('connected')document.getElementById('btnCreate').classList.remove('btn-created');
     $('newBetNote').style.display = 'flex';
   }catch(e){
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
