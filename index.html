@@ -215,7 +215,7 @@
 const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'https://sepolia.basescan.org' };
 const FEE_BPS = 250;        // fixed 2.5%
 let   ETH_USD = 3500;       // preview only
-const CONTRACT_ADDRESS = '0xb28A7FFd11E62a311d74d33De9be8Ec9cF48107A'; // <— change if you redeploy
+const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // UPDATED (Base Sepolia Verified)
 
 /* ---------- Shortcuts ---------- */
 const $ = id => document.getElementById(id);
@@ -382,13 +382,27 @@ async function doPayout(){
 /* ---------- Bet Ideas ---------- */
 const IDEAS = [
   "Make a 3-point shot from the top of the key",
-  "Darts: hit any double in 3 throws",
+  "Darts: Hit any double in 3 throws",
+  "Darts: You vs Me",
+  "Darts: Bullzeye",
+  "Drink: Chug under 1 minute",
+  "Hockey: Hitthe crossbar",
+  "Lacrosse: Top right corner",
+  "Human: No way!",
+  "Human: I bet you can't",
   "Cornhole: 2 in a row",
-  "Bottle flip: 3 out of 5",
-  "Soccer: crossbar in 3 tries",
-  "Pool: bank shot within 2 tries",
-  "Mini golf: closest-to-the-pin from 15ft",
-  "Ping pong: serve an ace in 5 serves"
+  "Bottle Flip: 3 out of 5",
+  "Soccer: Crossbar in 3 tries",
+  "Golf: Hole in one!",
+  "Speed: I'll bet you there!",
+  "Pool: You vs Me",
+  "Soccer: Crossbar in 3 tries",
+  "Pool: Bank shot within 2 tries",
+  "Golf: Closest-to-the-pin",
+  "Golf: On the green?",
+  "Golf: Low score",
+  "Golf: Match Play",
+  "Ping pong: Serve an ace in 5 serves"
 ];
 function shuffleIdea(){
   $('ideaBox').value = IDEAS[Math.floor(Math.random()*IDEAS.length)];
