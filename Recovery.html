@@ -284,7 +284,7 @@ async function getContract(){
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 }
 const ABI_CREATE_ALT = [
-  'function createBet(uint256 stakeWei, uint16 feeBps, uint256 joinWindowSeconds, uint256 resolveWindowSeconds) payable returns (uint256)'
+  'function createBet(uint256 stakeWei, uint16 feeBps, uint64 joinWindowSeconds, uint64 resolveWindowSeconds) payable returns (uint256)'
 ];
 /* ========= Actions ========= */
 async function onCreate(){
