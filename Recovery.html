@@ -52,7 +52,7 @@
       <div class="brand"><span class="logo">🧃</span><h1>The Juice — Crypto Escrow Bets</h1></div>
       <div class="row">
         <!-- LOCKED contract address (tooltip shows full) -->
-        <input id="contractAddress" class="addr" value="0xb28A7FFd11E62a311d74d33De9be8Ec9cF48107A" readonly title="0xb28A7FFd11E62a311d74d33De9be8Ec9cF48107A"/>
+        <input id="contractAddress" class="addr" value="0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433" readonly ... />
         <button id="connect" class="btn-plain">Connect Wallet</button>
         <button id="switch" class="btn">Switch to Base Sepolia</button>
         <button id="newBet" class="btn">Start New Bet</button>
@@ -160,7 +160,7 @@
 const BASE = { idHex:'0x14a34', rpc:'https://sepolia.base.org', explorer:'https://sepolia.basescan.org' };
 const FEE_BPS = 250;                 // 2.5% fixed
 let   ETH_USD = 3500;                // preview only
-const CONTRACT_ADDRESS = '0xb28A7FFd11E62a311d74d33De9be8Ec9cF48107A'; // LOCKED
+const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // LOCKED
 
 const $ = (id)=>document.getElementById(id);
 function setState(text){
