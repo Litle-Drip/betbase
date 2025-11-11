@@ -283,7 +283,9 @@ async function getContract(){
   ];
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 }
-
+const ABI_CREATE_ALT = [
+  'function createBet(uint256 stakeWei, uint16 feeBps, uint256 joinWindowSeconds, uint256 resolveWindowSeconds) payable returns (uint256)'
+];
 /* ========= Actions ========= */
 async function onCreate(){
   const btn = $('btnCreate');
@@ -297,7 +299,8 @@ async function onCreate(){
     $('joinMins').value = jm; $('resolveMins').value = rm;
 
     const stakeWei = ethers.parseEther(String($('stake').value||'0'));
-    const tx = await c.createBet(stakeWei, FEE_BPS, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
+    const cCreate = new ethers.Contract(CONTRACT_ADDRESS, ABI_CREATE_ALT, signer);
+    const tx = await cCreate.createBet(stakeWei, FEE_BPS, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
     $('createStatus').textContent = 'Pending ' + tx.hash;
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
