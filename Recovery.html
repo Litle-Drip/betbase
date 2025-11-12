@@ -299,8 +299,7 @@ async function onCreate(){
     $('joinMins').value = jm; $('resolveMins').value = rm;
 
     const stakeWei = ethers.parseEther(String($('stake').value||'0'));
-    const cCreate = new ethers.Contract(CONTRACT_ADDRESS, ABI_CREATE_ALT, signer);
-    const tx = await cCreate.createBet(stakeWei, FEE_BPS, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
+    const tx = await c.createBet(stakeWei, FEE_BPS, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
     $('createStatus').textContent = 'Pending ' + tx.hash;
     const rc = await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
