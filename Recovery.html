@@ -428,6 +428,33 @@ function startNewBet(){
 
 /* ========= Bet status (lightweight) ========= */
 async function refreshBetStatus(){ /* placeholder for future read-only UI */ }
+let provider, signer, account;
+
+async function connect() {
+  if (typeof window.ethereum === 'undefined') {
+    alert('MetaMask not found. Please install it.');
+    return;
+  }
+
+  try {
+    // Request wallet connection
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    account = await signer.getAddress();
+
+    // Update button UI
+    const btn = document.getElementById('connect');
+    btn.textContent = `Connected: ${account.slice(0,6)}…${account.slice(-4)}`;
+    btn.classList.add('btn-connected');
+    console.log('Connected to:', account);
+
+    return account;
+  } catch (err) {
+    console.error('Wallet connection failed:', err);
+    alert('Connection failed — check MetaMask permissions.');
+  }
+}
 
 /* ========= Wire UI ========= */
 window.addEventListener('DOMContentLoaded', ()=>{
