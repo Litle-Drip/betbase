@@ -256,7 +256,7 @@ function syncEthFromUsd(){ $('stakeEth').value = (parseFloat($('stakeUsd').value
 
 /* ---------- Wallet / ethers ---------- */
 let provider, signer;
-const  = [
+const ABI = [
   {type:'function',stateMutability:'payable',   name:'createBet',   inputs:[{name:'stakeWei',type:'uint256'},{name:'feeBps',type:'uint16'},{name:'joinWindowSeconds',type:'uint64'},{name:'resolveWindowSeconds',type:'uint64'}], outputs:[{name:'betId',type:'uint256'}]},
   {type:'function',stateMutability:'payable',   name:'joinBet',     inputs:[{name:'betId',type:'uint256'}], outputs:[]},
   {type:'function',stateMutability:'nonpayable',name:'confirmWinner',inputs:[{name:'betId',type:'uint256'},{name:'creatorWon',type:'bool'}], outputs:[]},
