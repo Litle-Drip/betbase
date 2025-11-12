@@ -264,7 +264,6 @@ const ABI = [
   {type:'function',stateMutability:'nonpayable',name:'resolve',     inputs:[{name:'betId',type:'uint256'}], outputs:[]},
   {type:'function',stateMutability:'view',      name:'getBet',      inputs:[{name:'betId',type:'uint256'}], outputs:[{type:'address'},{type:'address'},{type:'uint256'},{type:'uint16'},{type:'uint64'},{type:'uint64'},{type:'uint64'},{type:'uint8'},{type:'int8'},{type:'int8'}]}
 ];
-  const ABI_ALT_CREATE = ['function createBet(uint256,uint64,uint64) payable returns (uint256)'];
 async function ensureBase(){
   if (!window.ethereum) { alert('MetaMask not found'); throw new Error('no wallet'); }
   const chain = await window.ethereum.request({ method:'eth_chainId' });
@@ -298,29 +297,31 @@ function getContract(){
 }
 
 /* ---------- Actions ---------- */
-async function doCreate(){
-  $('createStatus').textContent = 'Sending…';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const stakeEth = String($('stakeEth').value||'0');
-    // clamp minutes
-    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value||'15',10)));
-    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value||'30',10)));
-    $('joinMins').value = jm; $('resolveMins').value = rm;
-    const stakeWei = ethers.parseEther(stakeEth);
-    const cAlt = new ethers.Contract(CONTRACT_ADDRESS, ABI_ALT_CREATE, signer);
-    const tx = await cAlt.createBet(stakeWei, BigInt(jm*60), BigInt(rm*60), { value: stakeWei });
-    $('createStatus').textContent = 'Pending ' + tx.hash;
-    const rc = await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('createStatus').textContent = '✅ Created (check explorer)';
-    $('btnCreate').classList.add('connected');
-    $('newBetNote').style.display = 'flex';
-  }catch(e){
-    $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
-  }
-}
+const c = getContract();
+const stakeEth = String($('stakeEth').value || '0');
+
+// clamp minutes
+const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
+const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
+$('joinMins').value = jm; $('resolveMins').value = rm;
+
+const stakeWei = ethers.parseEther(stakeEth);
+
+// ✅ call 4-arg signature (includes feeBps)
+const tx = await c.createBet(
+  stakeWei,
+  FEE_BPS,                 // 250
+  BigInt(jm * 60),
+  BigInt(rm * 60),
+  { value: stakeWei }
+);
+$('createStatus').textContent = 'Pending ' + tx.hash;
+const rc = await tx.wait();
+$('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+$('createStatus').textContent = '✅ Created (check explorer)';
+$('btnCreate').classList.add('connected');
+$('newBetNote').style.display = 'flex';
+
 async function doJoin(){
   $('actionStatus').textContent = 'Sending…';
   try{
