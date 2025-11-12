@@ -297,6 +297,10 @@ function getContract(){
 }
 
 /* ---------- Actions ---------- */
+async function doCreate(){
+  $('createStatus').textContent = 'Sending…';
+  try{
+    if (!signer) await connect();
 const c = getContract();
 const stakeEth = String($('stakeEth').value || '0');
 
@@ -321,7 +325,11 @@ $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
 $('createStatus').textContent = '✅ Created (check explorer)';
 $('btnCreate').classList.add('connected');
 $('newBetNote').style.display = 'flex';
-
+ }catch(e){
+    $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+  
 async function doJoin(){
   $('actionStatus').textContent = 'Sending…';
   try{
