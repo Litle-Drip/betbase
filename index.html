@@ -326,10 +326,8 @@ $('createStatus').textContent = '✅ Created (check explorer)';
 $('btnCreate').classList.add('connected');
 $('newBetNote').style.display = 'flex';
  }catch(e){
-    }catch(e){
-  console.error('createBet error', e);   // 🔍 add this line
-  $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
-}
+    console.error('createBet error', e);
+    $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
 }
   
