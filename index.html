@@ -451,7 +451,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // connect + chain switch
   $('btnConnect').onclick = connect;
-  $('btnSwitch').onclick  = async ()=>{ try{ await ensureBase(); $('btnSwitch').classList.add('connected'); setTimeout(()=>$('btnSwitch').classList.remove('connected'), 800); }catch{} };
+  $('btnSwitch').onclick  = async ()=>{ 
+  try { 
+    await ensureBase(); 
+    $('btnSwitch').classList.add('connected'); 
+  } catch {} 
+};
 
   // actions
   $('btnCreate').onclick = doCreate;
@@ -468,7 +473,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('btnShuffle').onclick = shuffleIdea;
 
   // new bet
-  $('btnNewBet').onclick = startNewBet;
+  $('btnNewBet').onclick = () => {
+  startNewBet();
+  $('btnNewBet').classList.add('connected');
+};
 
   // read ?bet= on load
   const p = new URLSearchParams(location.search); const b = p.get('bet'); if (b){ $('betId').value=b; $('shareUrl').value=currentShareUrl(); renderQR(); }
