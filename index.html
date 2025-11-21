@@ -97,7 +97,7 @@
     <div class="grid grid-3">
       <!-- Create -->
       <div class="card">
-        <h3>Create Bet</h3>
+        <h3 style="text-align:center">Create Bet</h3>
 
         <div class="row">
           <div style="min-width:220px;flex:1">
@@ -115,12 +115,10 @@
         </div>
 
         <div class="row" style="margin-top:6px">
-          <span class="label" style="margin:0">Set by USD:</span>
-          <button class="btn small ghost" id="usd1">$1</button>
-          <button class="btn small ghost" id="usd5">$5</button>
-          <button class="btn small ghost" id="usd20">$20</button>
-          <span class="label" style="margin:0 0 0 8px">Custom</span>
-          <input id="usdCustom" class="input" type="number" min="0" step="1" value="10" style="width:120px"/>
+            <span class="label" style="margin:0">Set by USD:</span>
+            <button class="btn small ghost" id="usd1">$1</button>
+            <button class="btn small ghost" id="usd5">$5</button>
+            <button class="btn small ghost" id="usd20">$20</button>
         </div>
         <div class="help" id="usdPreview" style="margin-top:4px">≈ $0.00</div>
 
@@ -138,7 +136,7 @@
 
         <div class="spacer"></div>
         <div class="row">
-          <button id="btnCreate" class="btn primary">Create & Fund</button>
+          <button id="btnCreate" class="btn ghost">Create & Fund</button>
           <button id="btnReset" class="btn">Reset</button>
         </div>
         <div id="createStatus" class="help" style="margin-top:8px"></div>
@@ -446,7 +444,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('usd20').onclick= ()=>{ $('stakeUsd').value = 20; syncEthFromUsd(); };
   $('ethPlus').onclick  = ()=>{ const v = Math.max(0, parseFloat($('stakeEth').value||'0') + 0.0001); $('stakeEth').value = v.toFixed(4); syncUsdFromEth(); };
   $('ethMinus').onclick = ()=>{ const v = Math.max(0, parseFloat($('stakeEth').value||'0') - 0.0001); $('stakeEth').value = v.toFixed(4); syncUsdFromEth(); };
-  $('usdCustom').addEventListener('input', ()=>{ $('stakeUsd').value = $('usdCustom').value; syncEthFromUsd(); });
 
   // share / QR
   renderQR();
