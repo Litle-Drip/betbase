@@ -69,6 +69,10 @@
           border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:14px}
   .spacer{height:8px}
   .successNote{display:flex;align-items:center;gap:8px;font-size:13px;color:#a7f3d0}
+  .btnConnected {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 </style>
 
 <!-- Libs -->
@@ -177,18 +181,18 @@
 
       <!-- Share / QR + Bet Ideas -->
       <div class="card">
-        <h3>Share / QR</h3>
-        <div class="help">Show this to your opponent so they can open the exact bet.</div>
+        <h3 style="text-align:center">Share / QR</h3>
+        <div class="help" style="white-space:nowrap">Show this to your opponent so they can open the exact bet.</div>
         <div class="row" style="margin-top:8px">
           <input id="betId" class="input" style="width:140px" value="1"/>
           <input id="shareUrl" class="input" readonly/>
-          <button id="btnCopy" class="btn small ghost">Copy link</button>
+          <button id="btnCopy" class="btn small ghost btnConnected">Copy link</button>
         </div>
         <div id="qrBox" style="margin-top:10px"></div>
 
         <div class="spacer"></div>
-        <h3 style="margin-top:16px">Bet Ideas</h3>
-        <div class="help">Tap shuffle to get a quick, fair challenge idea you can use IRL.</div>
+        <h3 style="margin-top:16px;text-align:center">Bet Ideas</h3>
+        <div class="help" style="white-space:nowrap">Tap shuffle to get a quick, fair challenge idea you can use IRL.</div>
         <div class="row" style="margin-top:8px">
           <input id="ideaBox" class="input" readonly value="Make a 3-point shot from the top of the key"/>
           <button id="btnShuffle" class="btn small ghost">Shuffle</button>
