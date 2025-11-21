@@ -240,14 +240,24 @@ function setCopyPulse(el){
 
 /* ---------- USD/ETH preview ---------- */
 function updatePreview() {
-  const eth = parseFloat($('stakeEth').value||'0') || 0;
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
   const pot = eth * 2;
-  const win = pot * (1 - FEE_BPS/10000);
-  $('sbPotEth').textContent = pot.toFixed(4);
-  $('sbPotUsd').textContent = fmtUsd(pot*ETH_USD);
-  $('sbWinEth').textContent = win.toFixed(4);
-  $('sbWinUsd').textContent = fmtUsd(win*ETH_USD);
-  $('usdPreview').textContent = '≈ ' + fmtUsd(eth*ETH_USD);
+  const win = pot * (1 - FEE_BPS / 10000);
+
+  const potEthEl = $('sbPotEth');
+  if (potEthEl) potEthEl.textContent = pot.toFixed(4);
+
+  const potUsdEl = $('sbPotUsd');
+  if (potUsdEl) potUsdEl.textContent = fmtUsd(pot * ETH_USD);
+
+  const winEthEl = $('sbWinEth');
+  if (winEthEl) winEthEl.textContent = win.toFixed(4);
+
+  const winUsdEl = $('sbWinUsd');
+  if (winUsdEl) winUsdEl.textContent = fmtUsd(win * ETH_USD);
+
+  const usdPrevEl = $('usdPreview');
+  if (usdPrevEl) usdPrevEl.textContent = '≈ ' + fmtUsd(eth * ETH_USD);
 }
 function syncUsdFromEth(){ $('stakeUsd').value = (parseFloat($('stakeEth').value||'0')*ETH_USD).toFixed(0); updatePreview(); }
 function syncEthFromUsd(){ $('stakeEth').value = (parseFloat($('stakeUsd').value||'0')/ETH_USD).toFixed(4); updatePreview(); }
