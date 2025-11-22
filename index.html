@@ -200,7 +200,7 @@
         <h3 style="text-align:center">Share / QR</h3>
         <div class="help" style="white-space:nowrap">Show this to your opponent so they can open the exact bet.</div>
         <div class="row" style="margin-top:8px">
-          <input id="betId" class="input" style="width:140px" value="1"/>
+          <input id="betId" class="input" style="width:140px" value=""/>
           <button id="btnCopy" class="btn small ghost btnConnected" style="height:100%;padding:12px 16px">Copy link</button>
           <input id="shareUrl" class="input" style="flex:1 1 100%" readonly/>
         </div>
@@ -244,9 +244,20 @@ $('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS}`;
 
 /* ---------- QR + share helpers ---------- */
 function currentShareUrl() {
-  const betId = $('betId').value || '1';
-  try { const u = new URL(location.href); u.searchParams.set('bet', betId); return u.toString(); }
-  catch { return location.href; }
+  const betId = $('betId').value;
+  try {
+    const u = new URL(location.href);
+    if (betId) {
+      // If we have a betId, include it in the URL
+      u.searchParams.set('bet', betId);
+    } else {
+      // If no betId yet, don’t show a fake one
+      u.searchParams.delete('bet');
+    }
+    return u.toString();
+  } catch {
+    return location.href;
+  }
 }
 let qr = null;
 function renderQR() {
