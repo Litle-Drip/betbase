@@ -308,19 +308,11 @@ function applyStakeFromEth(rawEth) {
   $('stakeEth').value = eth.toFixed(4);
   $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
 
-  function handleStakeMainInput() {
-  const num = Number($('#stakeMain').value) || 0;
-
   if (stakeMode === 'ETH') {
-    applyStakeFromEth(num);
+    $('stakeMain').value = eth.toFixed(4);
   } else {
-    const eth = num / ETH_USD;
-    applyStakeFromEth(eth);
-
-    // ✅ Force USD formatting
-    $('#stakeMain').value = num.toFixed(2);
+    $('stakeMain').value = (eth * ETH_USD).toFixed(0);
   }
-}
 
   updatePreview();
 }
@@ -403,6 +395,13 @@ function getContract(){
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 }
 
+function requireBetId(){
+  const raw = String(($('betId').value || '').trim());
+  if (!raw) throw new Error('Enter a bet ID first.');
+  if (!/^\d+$/.test(raw)) throw new Error('Bet ID must be a number.');
+  return BigInt(raw);
+}
+
 /* ---------- Actions ---------- */
 async function doCreate(){
   $('createStatus').textContent = 'Sending…';
@@ -410,6 +409,10 @@ async function doCreate(){
     if (!signer) await connect();
     const c = getContract();
     const stakeEth = String($('stakeEth').value || '0');
+
+    if (Number(stakeEth) <= 0){
+      throw new Error('Stake must be greater than zero.');
+    }
 
     // clamp minutes
     const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
@@ -452,7 +455,7 @@ async function doJoin(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = requireBetId();
     // read stake from-chain to avoid mismatch
     const b = await c.getBet(betId);
     const stakeWei = b[2];
@@ -469,7 +472,7 @@ async function doVote(creatorWon){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = requireBetId();
     const tx = await c.confirmWinner(betId, Boolean(creatorWon));
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -483,7 +486,7 @@ async function doRefund(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = requireBetId();
     const tx = await c.refund(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -497,7 +500,7 @@ async function doPayout(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = requireBetId();
     const tx = await c.resolve(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -588,16 +591,16 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // connect + chain switch
   $('btnConnect').onclick = connect;
-  $('btnSwitch').onclick  = async ()=>{ 
-  try { 
-    await ensureBase(); 
-    $('btnSwitch').classList.add('connected'); 
-  } catch {} 
+  $('btnSwitch').onclick  = async ()=>{
+  try {
+    await ensureBase();
+    $('btnSwitch').classList.add('connected');
+  } catch {}
 };
 
   // actions
   $('btnCreate').onclick = doCreate;
-  $('btnReset').onclick  = ()=>{ $('stakeEth').value='0.0014'; $('stakeUsd').value='5'; $('joinMins').value='15'; $('resolveMins').value='30'; updatePreview(); };
+  $('btnReset').onclick  = ()=>{ $('joinMins').value='15'; $('resolveMins').value='30'; applyStakeFromEth(0.0014); };
   $('btnJoin').onclick   = doJoin;
   $('btnRefund').onclick = doRefund;
   $('creatorWon').onclick= ()=>doVote(true);
