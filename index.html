@@ -37,7 +37,7 @@
   .chip.success{background:var(--accent-ink);border-color:var(--accent);color:#a7f3d0}
   .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .addr{background:#0d1627;border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:0;
-        ont-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0f172a;color:#dfe7ef;
        cursor:pointer;transition:transform .06s ease, box-shadow .12s ease, background .12s ease}
   .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
@@ -160,6 +160,14 @@
         <input id="resolveMins" class="input" type="number" min="30" max="43200" value="30"/>
 
         <div class="spacer"></div>
+        <label class="label">Preview ETH/USD price <span class="help">(used for display only)</span></label>
+        <div class="row">
+          <input id="ethUsd" class="input" type="number" min="50" max="100000" value="3500" style="max-width:200px"/>
+          <button id="btnSetEthUsd" class="btn small ghost">Update preview</button>
+        </div>
+        <div class="help" id="ethUsdNote">Static price — adjust if market moves.</div>
+
+        <div class="spacer"></div>
         <div class="row">
           <button id="btnCreate" class="btn ghost">Create & Fund</button>
           <button id="btnReset" class="btn">Reset</button>
@@ -198,6 +206,15 @@
 
         <div id="actionStatus" class="help" style="margin-top:10px"></div>
         <div id="newBetNote" class="successNote" style="display:none;margin-top:10px;justify-content:center;text-align:center">🆕 New bet link prepared — share the QR!</div>
+
+        <div class="spacer"></div>
+        <h4 style="margin:6px 0">Bet details</h4>
+        <div class="help" id="betSummary">Enter a bet ID to load details.</div>
+        <div class="row" style="margin-top:8px">
+          <div class="state" id="betState">No bet loaded</div>
+          <button id="btnLoadBet" class="btn small ghost">Load bet</button>
+        </div>
+        <div class="help" id="betMeta"></div>
       </div>
 
       <!-- Share / QR + Bet Ideas -->
@@ -209,6 +226,7 @@
           <button id="btnCopy" class="btn small ghost btnConnected" style="height:100%;padding:12px 16px">Copy link</button>
           <input id="shareUrl" class="input" style="flex:1 1 100%" readonly/>
         </div>
+        <div class="help" id="shareNote" style="margin-top:4px">Bet link will populate after creation.</div>
         <div id="qrBox" style="margin-top:10px"></div>
 
         <div class="spacer"></div>
@@ -239,6 +257,12 @@ const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'htt
 const FEE_BPS = 250;        // fixed 2.5%
 let   ETH_USD = 3500;       // preview only
 const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // UPDATED (Base Sepolia Verified)
+const STATUS = Object.freeze({
+  0:'Pending join',
+  1:'Active',
+  2:'Resolved',
+  3:'Refunded'
+});
 
 /* ---------- Shortcuts ---------- */
 const $ = id => document.getElementById(id);
@@ -268,6 +292,13 @@ let qr = null;
 function renderQR() {
   const node = $('qrBox'); node.innerHTML = '';
   qr = new QRCode(node, { text: currentShareUrl(), width: 160, height: 160, colorDark:'#ffffff', colorLight:'#0b1324', correctLevel: QRCode.CorrectLevel.M });
+}
+function clearShare(){
+  $('betId').value = '';
+  $('shareUrl').value = currentShareUrl();
+  $('shareNote').textContent = 'Bet link will populate after creation.';
+  $('qrBox').innerHTML = '';
+  $('newBetNote').style.display = 'none';
 }
 function setCopyPulse(el){
   el.classList.add('connected');
@@ -308,19 +339,11 @@ function applyStakeFromEth(rawEth) {
   $('stakeEth').value = eth.toFixed(4);
   $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
 
-  function handleStakeMainInput() {
-  const num = Number($('#stakeMain').value) || 0;
-
   if (stakeMode === 'ETH') {
-    applyStakeFromEth(num);
+    $('stakeMain').value = eth.toFixed(4);
   } else {
-    const eth = num / ETH_USD;
-    applyStakeFromEth(eth);
-
-    // ✅ Force USD formatting
-    $('#stakeMain').value = num.toFixed(2);
+    $('stakeMain').value = (eth * ETH_USD).toFixed(0);
   }
-}
 
   updatePreview();
 }
@@ -403,6 +426,65 @@ function getContract(){
   return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 }
 
+function requireBetId(){
+  const raw = String(($('betId').value || '').trim());
+  if (!raw) throw new Error('Enter a bet ID first.');
+  if (!/^\d+$/.test(raw)) throw new Error('Bet ID must be a number.');
+  return BigInt(raw);
+}
+function renderBetMeta(bet){
+  if (!bet){
+    $('betSummary').textContent = 'Enter a bet ID to load details.';
+    $('betState').textContent = 'No bet loaded';
+    $('betState').classList.remove('ok');
+    $('betMeta').textContent = '';
+    return;
+  }
+  const statusText = STATUS[bet.status] ?? `Status ${bet.status}`;
+  $('betState').textContent = statusText;
+  if (bet.status === 1 || bet.status === 2) $('betState').classList.add('ok'); else $('betState').classList.remove('ok');
+  const parts = [
+    `Creator: ${bet.creator}`,
+    `Opponent: ${bet.opponent === ethers.ZeroAddress ? '— (open)' : bet.opponent}`,
+    `Stake: ${ethers.formatEther(bet.stakeWei)} ETH`,
+    `Fee: ${(bet.feeBps/100).toFixed(2)}%`,
+    `Join by: ${bet.joinDeadline ? new Date(Number(bet.joinDeadline)*1000).toLocaleString() : 'n/a'}`,
+    `Resolve by: ${bet.resolveDeadline ? new Date(Number(bet.resolveDeadline)*1000).toLocaleString() : 'n/a'}`,
+    `Last action: ${bet.lastAction ? new Date(Number(bet.lastAction)*1000).toLocaleString() : 'n/a'}`,
+    `Votes (creator/opponent): ${bet.creatorVote} / ${bet.opponentVote}`
+  ];
+  $('betSummary').textContent = `Bet #${bet.betId} loaded.`;
+  $('betMeta').textContent = parts.join(' • ');
+}
+async function loadBetDetails(){
+  try{
+    const betId = requireBetId();
+    if (!signer) await connect();
+    const c = getContract();
+    const res = await c.getBet(betId);
+    if (!res || res[0] === ethers.ZeroAddress){ throw new Error('Bet not found on-chain.'); }
+    const bet = {
+      betId: betId.toString(),
+      creator: res[0],
+      opponent: res[1],
+      stakeWei: res[2],
+      feeBps: Number(res[3]),
+      joinDeadline: res[4],
+      resolveDeadline: res[5],
+      lastAction: res[6],
+      status: Number(res[7] ?? 0),
+      creatorVote: Number(res[8] ?? 0),
+      opponentVote: Number(res[9] ?? 0)
+    };
+    renderBetMeta(bet);
+    return bet;
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+    renderBetMeta(null);
+    throw e;
+  }
+}
+
 /* ---------- Actions ---------- */
 async function doCreate(){
   $('createStatus').textContent = 'Sending…';
@@ -410,6 +492,10 @@ async function doCreate(){
     if (!signer) await connect();
     const c = getContract();
     const stakeEth = String($('stakeEth').value || '0');
+
+    if (Number(stakeEth) <= 0){
+      throw new Error('Stake must be greater than zero.');
+    }
 
     // clamp minutes
     const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
@@ -441,25 +527,28 @@ async function doCreate(){
 
     $('btnCreate').classList.add('connected');
     $('newBetNote').style.display = 'flex';
+    $('shareNote').textContent = 'This bet ID is on-chain. Share the link or QR.';
+    await loadBetDetails();
   }catch(e){
     console.error('createBet error', e);
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
 }
-  
+
 async function doJoin(){
   $('actionStatus').textContent = 'Sending…';
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    // read stake from-chain to avoid mismatch
-    const b = await c.getBet(betId);
-    const stakeWei = b[2];
-    const tx = await c.joinBet(betId, { value: stakeWei });
+    const bet = await loadBetDetails();
+    const now = Math.floor(Date.now()/1000);
+    if (bet.opponent !== ethers.ZeroAddress){ throw new Error('This bet already has an opponent.'); }
+    if (bet.joinDeadline && now > Number(bet.joinDeadline)){ throw new Error('Join window has ended.'); }
+    if (!bet.stakeWei || bet.stakeWei === 0n){ throw new Error('Bet not initialized on-chain.'); }
+    const tx = await c.joinBet(bet.betId, { value: bet.stakeWei });
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('actionStatus').textContent = '✅ Joined bet #' + betId;
+    $('actionStatus').textContent = '✅ Joined bet #' + bet.betId;
   }catch(e){
     $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
   }
@@ -469,8 +558,14 @@ async function doVote(creatorWon){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.confirmWinner(betId, Boolean(creatorWon));
+    const bet = await loadBetDetails();
+    const addr = await signer.getAddress();
+    if (bet.opponent === ethers.ZeroAddress){ throw new Error('Opponent not joined yet.'); }
+    if (bet.status === 2 || bet.status === 3){ throw new Error('Bet already finalized.'); }
+    if (addr.toLowerCase() !== bet.creator.toLowerCase() && addr.toLowerCase() !== bet.opponent.toLowerCase()){
+      throw new Error('Only creator or opponent can vote.');
+    }
+    const tx = await c.confirmWinner(bet.betId, Boolean(creatorWon));
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Vote submitted';
@@ -483,8 +578,16 @@ async function doRefund(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.refund(betId);
+    const bet = await loadBetDetails();
+    const addr = await signer.getAddress();
+    const now = Math.floor(Date.now()/1000);
+    if (addr.toLowerCase() !== bet.creator.toLowerCase() && addr.toLowerCase() !== bet.opponent.toLowerCase()){
+      throw new Error('Only participants can request a refund.');
+    }
+    if (bet.opponent !== ethers.ZeroAddress && bet.resolveDeadline && now < Number(bet.resolveDeadline)){
+      throw new Error('Resolve window still active; refund may revert.');
+    }
+    const tx = await c.refund(bet.betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Refund sent';
@@ -497,8 +600,9 @@ async function doPayout(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.resolve(betId);
+    const bet = await loadBetDetails();
+    if (bet.creatorVote === 0 || bet.opponentVote === 0){ throw new Error('Both votes are required before payout.'); }
+    const tx = await c.resolve(bet.betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Payout finalized';
@@ -542,13 +646,9 @@ function shuffleIdea(){
 }
 
 /* ---------- New bet link ---------- */
-function genBetId(){ return String(Math.floor(10_000_000 + Math.random()*90_000_000)); }
 function startNewBet(){
-  const id = genBetId();
-  $('betId').value = id;
-  $('shareUrl').value = currentShareUrl();
-  renderQR();
-  $('newBetNote').style.display = 'flex';
+  clearShare();
+  $('shareNote').textContent = 'Create & fund to receive the on-chain bet ID.';
 }
 
 /* ---------- Wire UI ---------- */
@@ -564,6 +664,17 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // toggle buttons
   $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
   $('stakeModeUsd').onclick = ()=> setStakeMode('USD');
+
+  $('btnSetEthUsd').onclick = ()=>{
+    const v = Number($('ethUsd').value || ETH_USD);
+    if (Number.isFinite(v) && v > 0){
+      ETH_USD = v;
+      $('ethUsdNote').textContent = 'Preview price updated manually.';
+      updatePreview();
+    } else {
+      $('ethUsdNote').textContent = 'Enter a valid price to update the preview.';
+    }
+  };
 
   // USD preset buttons — interpret as USD and convert
   $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
@@ -582,22 +693,25 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // share / QR
   renderQR();
-  $('betId').addEventListener('input', ()=>{ $('shareUrl').value = currentShareUrl(); renderQR(); });
+  $('betId').addEventListener('input', ()=>{ $('shareUrl').value = currentShareUrl(); $('shareNote').textContent = 'Load details to validate this bet.'; renderQR(); });
   $('shareUrl').value = currentShareUrl();
-  $('btnCopy').onclick = async ()=>{ try{ await navigator.clipboard.writeText($('shareUrl').value); setCopyPulse($('btnCopy')); }catch{} };
+  $('btnCopy').onclick = async ()=>{ try{ await navigator.clipboard.writeText($('shareUrl').value); setCopyPulse($('btnCopy')); $('shareNote').textContent = 'Copied to clipboard.'; }catch(e){ $('shareNote').textContent = 'Clipboard failed: ' + (e?.message||e); } };
 
   // connect + chain switch
   $('btnConnect').onclick = connect;
-  $('btnSwitch').onclick  = async ()=>{ 
-  try { 
-    await ensureBase(); 
-    $('btnSwitch').classList.add('connected'); 
-  } catch {} 
+  $('btnSwitch').onclick  = async ()=>{
+  try {
+    await ensureBase();
+    $('btnSwitch').classList.add('connected');
+    $('actionStatus').textContent = 'Network set to Base Sepolia.';
+  } catch(err){
+    $('actionStatus').textContent = '❌ Network switch failed: ' + (err?.message||err);
+  }
 };
 
   // actions
   $('btnCreate').onclick = doCreate;
-  $('btnReset').onclick  = ()=>{ $('stakeEth').value='0.0014'; $('stakeUsd').value='5'; $('joinMins').value='15'; $('resolveMins').value='30'; updatePreview(); };
+  $('btnReset').onclick  = ()=>{ $('joinMins').value='15'; $('resolveMins').value='30'; applyStakeFromEth(0.0014); clearShare(); renderBetMeta(null); };
   $('btnJoin').onclick   = doJoin;
   $('btnRefund').onclick = doRefund;
   $('creatorWon').onclick= ()=>doVote(true);
@@ -605,6 +719,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('opponentSaysCreator').onclick= ()=>doVote(true);
   $('opponentWon').onclick= ()=>doVote(false);
   $('btnPayout').onclick = doPayout;
+  $('btnLoadBet').onclick = loadBetDetails;
 
   // ideas
   $('btnShuffle').onclick = shuffleIdea;
