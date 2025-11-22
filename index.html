@@ -44,7 +44,20 @@
   .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:800}
   .btn.ghost{background:#0f172a;border-color:var(--accent);color:#a7f3d0}
   .btn.connected{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  .btn.small{padding:12px 10px;font-size:13px;border-radius:10px}
+  .btn.small{padding:14px 18px;font-size:16px;border-radius:10px}
+  /* Green outline + click flash for - and + buttons */
+#ethMinus,
+#ethPlus{
+  border-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
+}
+
+#ethMinus:active,
+#ethPlus:active{
+  background: var(--accent);
+  color: var(--accent-ink);
+}
   .grid{display:grid;gap:16px}
   @media(min-width:960px){.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;
