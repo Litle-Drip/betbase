@@ -148,7 +148,7 @@
         </div>
 
         <div class="spacer"></div>
-        <label class="label">Fee (fixed at 2.5%)</label>
+        <label class="label">Fee (2.5% via this app)</label>
         <input id="feeBps" class="input" value="250" readonly disabled/>
 
         <div class="spacer"></div>
@@ -458,6 +458,19 @@ async function doJoin(){
     const betId = requireBetId();
     // read stake from-chain to avoid mismatch
     const b = await c.getBet(betId);
+
+// ✅ bet doesn't exist
+if (b[0] === ethers.ZeroAddress){
+  $('actionStatus').textContent = '❌ Bet not found';
+  return;
+}
+
+// ✅ someone already joined
+if (b[1] !== ethers.ZeroAddress){
+  $('actionStatus').textContent = '❌ Bet already has an opponent';
+  return;
+}
+
     const stakeWei = b[2];
     const tx = await c.joinBet(betId, { value: stakeWei });
     await tx.wait();
@@ -547,11 +560,10 @@ function shuffleIdea(){
 /* ---------- New bet link ---------- */
 function genBetId(){ return String(Math.floor(10_000_000 + Math.random()*90_000_000)); }
 function startNewBet(){
-  const id = genBetId();
-  $('betId').value = id;
-  $('shareUrl').value = currentShareUrl();
-  renderQR();
-  $('newBetNote').style.display = 'flex';
+  $('betId').value = '';
+  $('shareUrl').value = '';
+  $('qrBox').innerHTML = '';
+  $('newBetNote').style.display = 'none';
 }
 
 /* ---------- Wire UI ---------- */
@@ -600,7 +612,17 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // actions
   $('btnCreate').onclick = doCreate;
-  $('btnReset').onclick  = ()=>{ $('joinMins').value='15'; $('resolveMins').value='30'; applyStakeFromEth(0.0014); };
+  $('btnReset').onclick  = ()=>{ 
+  $('joinMins').value='15'; 
+  $('resolveMins').value='30'; 
+  applyStakeFromEth(0.0014);
+
+  // ✅ Clear any previous bet
+  $('betId').value = '';
+  $('shareUrl').value = '';
+  $('qrBox').innerHTML = '';
+  $('newBetNote').style.display = 'none';
+};
   $('btnJoin').onclick   = doJoin;
   $('btnRefund').onclick = doRefund;
   $('creatorWon').onclick= ()=>doVote(true);
