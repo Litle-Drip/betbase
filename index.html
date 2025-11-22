@@ -120,19 +120,25 @@
         <h3 style="text-align:center">Create Bet</h3>
 
         <div class="row">
-          <div style="min-width:220px;flex:1">
-            <label class="label">Stake (ETH)</label>
-            <input id="stakeEth" class="input" type="number" step="0.0001" value="0.0014"/>
-          </div>
-          <div style="min-width:220px;flex:1">
-            <label class="label">Stake (USD)</label>
-            <input id="stakeUsd" class="input" type="number" step="1" value="5"/>
-          </div>
-          <div class="row" style="align-self:flex-end">
-            <button id="ethMinus" class="btn small">−</button>
-            <button id="ethPlus"  class="btn small">+</button>
-          </div>
-        </div>
+          <div class="row">
+  <div style="min-width:220px;flex:1">
+    <label class="label">
+      Stake (<span id="stakeModeLabel">ETH</span>)
+    </label>
+    <input id="stakeMain" class="input" type="number" step="0.0001" value="0.0014"/>
+  </div>
+
+  <div class="row" style="align-self:flex-end;gap:6px">
+    <button id="stakeModeEth" class="btn small ghost">ETH</button>
+    <button id="stakeModeUsd" class="btn small ghost">USD</button>
+    <button id="ethMinus" class="btn small">−</button>
+    <button id="ethPlus"  class="btn small">+</button>
+  </div>
+
+  <!-- hidden fields that the JS and contract still use -->
+  <input id="stakeEth" class="input" type="hidden" value="0.0014"/>
+  <input id="stakeUsd" class="input" type="hidden" value="5"/>
+</div>
 
         <div class="row" style="margin-top:6px">
         <span class="label" style="margin:0">Set by USD:</span>
@@ -292,6 +298,61 @@ function updatePreview() {
 }
 function syncUsdFromEth(){ $('stakeUsd').value = (parseFloat($('stakeEth').value||'0')*ETH_USD).toFixed(0); updatePreview(); }
 function syncEthFromUsd(){ $('stakeEth').value = (parseFloat($('stakeUsd').value||'0')/ETH_USD).toFixed(4); updatePreview(); }
+// ---------- Single stake box + mode toggle ----------
+let stakeMode = 'ETH'; // or 'USD'
+
+// Core function: whenever ETH changes, update hidden fields, visible box, and preview
+function applyStakeFromEth(rawEth) {
+  const eth = Math.max(0, Number(rawEth) || 0);
+
+  // hidden ETH + USD
+  $('stakeEth').value = eth.toFixed(4);
+  $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
+
+  // visible input depends on current mode
+  if (stakeMode === 'ETH') {
+    $('stakeMain').value = eth.toFixed(4);
+  } else {
+    $('stakeMain').value = $('stakeUsd').value;
+  }
+
+  updatePreview();
+}
+
+// When user types in the single box
+function handleStakeMainInput() {
+  const num = Number($('stakeMain').value) || 0;
+  if (stakeMode === 'ETH') {
+    applyStakeFromEth(num);
+  } else {
+    const eth = num / ETH_USD;
+    applyStakeFromEth(eth);
+  }
+}
+
+// Switch between ETH and USD modes
+function setStakeMode(mode) {
+  if (mode !== 'ETH' && mode !== 'USD') return;
+  stakeMode = mode;
+
+  // Label
+  const lbl = $('stakeModeLabel');
+  if (lbl) lbl.textContent = mode;
+
+  // Simple visual state on buttons
+  $('stakeModeEth').classList.toggle('connected', mode === 'ETH');
+  $('stakeModeUsd').classList.toggle('connected', mode === 'USD');
+
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+
+  if (mode === 'ETH') {
+    $('stakeMain').step = '0.0001';
+    $('stakeMain').value = eth.toFixed(4);
+  } else {
+    $('stakeMain').step = '1';
+    $('stakeMain').value = (eth * ETH_USD).toFixed(0);
+  }
+}
 
 /* ---------- Wallet / ethers ---------- */
 let provider, signer;
@@ -487,14 +548,31 @@ function startNewBet(){
 /* ---------- Wire UI ---------- */
 window.addEventListener('DOMContentLoaded', ()=>{
   // defaults + preview
-  updatePreview();
-  $('stakeEth').addEventListener('input', syncUsdFromEth);
-  $('stakeUsd').addEventListener('input', syncEthFromUsd);
-  $('usd1').onclick = ()=>{ $('stakeUsd').value = 1;  syncEthFromUsd(); };
-  $('usd5').onclick = ()=>{ $('stakeUsd').value = 5;  syncEthFromUsd(); };
-  $('usd20').onclick= ()=>{ $('stakeUsd').value = 20; syncEthFromUsd(); };
-  $('ethPlus').onclick  = ()=>{ const v = Math.max(0, parseFloat($('stakeEth').value||'0') + 0.0001); $('stakeEth').value = v.toFixed(4); syncUsdFromEth(); };
-  $('ethMinus').onclick = ()=>{ const v = Math.max(0, parseFloat($('stakeEth').value||'0') - 0.0001); $('stakeEth').value = v.toFixed(4); syncUsdFromEth(); };
+    // defaults + preview (start in ETH mode with initial value)
+  setStakeMode('ETH');
+  applyStakeFromEth($('stakeEth').value || '0');
+
+  // single stake box input
+  $('stakeMain').addEventListener('input', handleStakeMainInput);
+
+  // toggle buttons
+  $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
+  $('stakeModeUsd').onclick = ()=> setStakeMode('USD');
+
+  // USD preset buttons — interpret as USD and convert
+  $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
+  $('usd5').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 5;  handleStakeMainInput(); };
+  $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
+
+  // +/- buttons — adjust in ETH space
+  $('ethPlus').onclick  = ()=>{
+    const v = Math.max(0, parseFloat($('stakeEth').value || '0') + 0.0001);
+    applyStakeFromEth(v);
+  };
+  $('ethMinus').onclick = ()=>{
+    const v = Math.max(0, parseFloat($('stakeEth').value || '0') - 0.0001);
+    applyStakeFromEth(v);
+  };
 
   // share / QR
   renderQR();
