@@ -119,26 +119,25 @@
       <div class="card">
         <h3 style="text-align:center">Create Bet</h3>
 
-        <div class="row">
-          <div class="row">
-  <div style="min-width:220px;flex:1">
-    <label class="label">
-      Stake (<span id="stakeModeLabel">ETH</span>)
-    </label>
-    <input id="stakeMain" class="input" type="number" step="0.0001" value="0.0014"/>
-  </div>
+                <div class="row" style="align-items:flex-end">
+          <div style="min-width:220px;flex:1">
+            <label class="label">
+              Stake (<span id="stakeModeLabel">ETH</span>)
+            </label>
+            <input id="stakeMain" class="input" type="number" step="0.0001" value="0.0014"/>
+          </div>
 
-  <div class="row" style="align-self:flex-end;gap:6px">
-    <button id="stakeModeEth" class="btn small ghost">ETH</button>
-    <button id="stakeModeUsd" class="btn small ghost">USD</button>
-    <button id="ethMinus" class="btn small">−</button>
-    <button id="ethPlus"  class="btn small">+</button>
-  </div>
+          <div class="row" style="align-items:center;gap:6px">
+            <button id="stakeModeEth" class="btn small ghost">ETH</button>
+            <button id="stakeModeUsd" class="btn small ghost">USD</button>
+            <button id="ethMinus" class="btn small">−</button>
+            <button id="ethPlus"  class="btn small">+</button>
+          </div>
 
-  <!-- hidden fields that the JS and contract still use -->
-  <input id="stakeEth" class="input" type="hidden" value="0.0014"/>
-  <input id="stakeUsd" class="input" type="hidden" value="5"/>
-</div>
+          <!-- hidden fields that the JS and contract still use -->
+          <input id="stakeEth" class="input" type="hidden" value="0.0014"/>
+          <input id="stakeUsd" class="input" type="hidden" value="5"/>
+        </div>
 
         <div class="row" style="margin-top:6px">
         <span class="label" style="margin:0">Set by USD:</span>
