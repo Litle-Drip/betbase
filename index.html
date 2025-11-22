@@ -308,12 +308,19 @@ function applyStakeFromEth(rawEth) {
   $('stakeEth').value = eth.toFixed(4);
   $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
 
-  // visible input depends on current mode
+  function handleStakeMainInput() {
+  const num = Number($('#stakeMain').value) || 0;
+
   if (stakeMode === 'ETH') {
-    $('stakeMain').value = eth.toFixed(4);
+    applyStakeFromEth(num);
   } else {
-    $('stakeMain').value = $('stakeUsd').value;
+    const eth = num / ETH_USD;
+    applyStakeFromEth(eth);
+
+    // ✅ Force USD formatting
+    $('#stakeMain').value = num.toFixed(2);
   }
+}
 
   updatePreview();
 }
