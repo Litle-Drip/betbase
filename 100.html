@@ -37,7 +37,7 @@
   .chip.success{background:var(--accent-ink);border-color:var(--accent);color:#a7f3d0}
   .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .addr{background:#0d1627;border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:0;
-        ont-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0f172a;color:#dfe7ef;
        cursor:pointer;transition:transform .06s ease, box-shadow .12s ease, background .12s ease}
   .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
@@ -76,8 +76,8 @@
 </style>
 
 <!-- Libs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-VIRdZIjbiDNPBdNjMS+V5a4IR1SaIZ3TpAP9W+A1Cvz7BXfKBalMjzW1xFQo3xmN+KfIMTDeIqX/qkHvJXWv9g==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" integrity="sha512-p9c3+n1fDF3euovzOTigXLMfzydPtxz4gLvh3q8f+Qq9JRvrEUY8Z7hkXITaE/dMfoY7P5FP5HcnxCzbEW5NlA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
   <div class="container">
@@ -207,7 +207,7 @@
         <div class="chip">Fee: <strong style="margin-left:6px">2.5%</strong></div>
         <div class="chip">Pot: <strong><span id="sbPotEth">0.0000</span> ETH</strong> (<span id="sbPotUsd">$0.00</span>)</div>
         <div class="chip">Winner gets: <strong><span id="sbWinEth">0.0000</span> ETH</strong> (<span id="sbWinUsd">$0.00</span>)</div>
-        <a id="lastTx" class="chip" href="#" target="_blank" style="text-decoration:underline">View on Basescan</a>
+        <a id="lastTx" class="chip" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">View on Basescan</a>
       </div>
     </div>
   </div>
@@ -222,6 +222,17 @@ const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; // UPDATE
 /* ---------- Shortcuts ---------- */
 const $ = id => document.getElementById(id);
 const fmtUsd = v => '$' + v.toFixed(2);
+async function getUserAddress(){ return signer ? (await signer.getAddress()).toLowerCase() : ''; }
+function parseBetId(){
+  const raw = ($('betId').value || '').trim();
+  if (!/^\d+$/.test(raw)) throw new Error('Enter a numeric bet ID.');
+  return BigInt(raw);
+}
+function requirePositiveStake(){
+  const v = parseFloat($('stakeEth').value || '0');
+  if (!Number.isFinite(v) || v <= 0) throw new Error('Stake must be greater than zero.');
+  return v;
+}
 
 /* ---------- Fill header contract pill ---------- */
 $('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS}`;
@@ -314,7 +325,7 @@ async function doCreate(){
   try{
     if (!signer) await connect();
 const c = getContract();
-const stakeEth = String($('stakeEth').value || '0');
+const stakeEth = String(requirePositiveStake());
 
 // clamp minutes
 const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
@@ -322,6 +333,13 @@ const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30',
 $('joinMins').value = jm; $('resolveMins').value = rm;
 
 const stakeWei = ethers.parseEther(stakeEth);
+  const predictedBetId = await c.createBet.staticCall(
+  stakeWei,
+  FEE_BPS,
+  BigInt(jm * 60),
+  BigInt(rm * 60),
+  { value: stakeWei }
+);
 
 // ✅ call 4-arg signature (includes feeBps)
 const tx = await c.createBet(
@@ -331,12 +349,22 @@ const tx = await c.createBet(
   BigInt(rm * 60),
   { value: stakeWei }
 );
-$('createStatus').textContent = 'Pending ' + tx.hash;
-const rc = await tx.wait();
-$('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-$('createStatus').textContent = '✅ Created (check explorer)';
-$('btnCreate').classList.add('connected');
-$('newBetNote').style.display = 'flex';
+  $('createStatus').textContent = 'Pending ' + tx.hash;
+  const rc = await tx.wait();
+  $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+  $('createStatus').textContent = '✅ Created (check explorer)';
+  $('btnCreate').classList.add('connected');
+  $('newBetNote').style.display = 'flex';
+
+  const betIdStr = predictedBetId.toString();
+  $('betId').value = betIdStr;
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('bet', betIdStr);
+  history.replaceState(null, '', url.toString());
+
+  $('shareUrl').value = url.toString();
+  renderQR();
  }catch(e){
     console.error('createBet error', e);
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
@@ -348,11 +376,15 @@ async function doJoin(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = parseBetId();
+    const bet = await c.getBet(betId);
+    const [, opponent, stakeWei,, , joinDeadline] = bet;
+    if (opponent && opponent !== ethers.ZeroAddress) throw new Error('Bet already has an opponent.');
+    const now = BigInt((await provider.getBlock('latest')).timestamp);
+    if (now > joinDeadline) throw new Error('Join window has closed.');
     // read stake from-chain to avoid mismatch
-    const b = await c.getBet(betId);
-    const stakeWei = b[2];
-    const tx = await c.joinBet(betId, { value: stakeWei });
+    const stakeWeiFromChain = bet[2];
+    const tx = await c.joinBet(betId, { value: stakeWeiFromChain });
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Joined bet #' + betId;
@@ -365,7 +397,11 @@ async function doVote(creatorWon){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = parseBetId();
+    const bet = await c.getBet(betId);
+    const [creator, opponent] = bet;
+    const you = await getUserAddress();
+    if (![creator.toLowerCase(), opponent.toLowerCase()].includes(you)) throw new Error('Only participants can vote.');
     const tx = await c.confirmWinner(betId, Boolean(creatorWon));
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -379,7 +415,13 @@ async function doRefund(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = parseBetId();
+    const bet = await c.getBet(betId);
+    const [creator, opponent,, , , joinDeadline] = bet;
+    const you = await getUserAddress();
+    if (![creator.toLowerCase(), opponent.toLowerCase()].includes(you)) throw new Error('Only participants can refund.');
+    const now = BigInt((await provider.getBlock('latest')).timestamp);
+    if (now <= joinDeadline) throw new Error('Join window still open; refund not available.');
     const tx = await c.refund(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -393,7 +435,14 @@ async function doPayout(){
   try{
     if (!signer) await connect();
     const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
+    const betId = parseBetId();
+    const bet = await c.getBet(betId);
+    const [creator, opponent,,,, resolveDeadline,, creatorVote, opponentVote] = bet;
+    const you = await getUserAddress();
+    if (![creator.toLowerCase(), opponent.toLowerCase()].includes(you)) throw new Error('Only participants can resolve.');
+    const now = BigInt((await provider.getBlock('latest')).timestamp);
+    if (now < resolveDeadline) throw new Error('Resolve window not open yet.');
+    if (creatorVote === -1n || opponentVote === -1n) throw new Error('Both votes are required before payout.');
     const tx = await c.resolve(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -438,13 +487,16 @@ function shuffleIdea(){
 }
 
 /* ---------- New bet link ---------- */
-function genBetId(){ return String(Math.floor(10_000_000 + Math.random()*90_000_000)); }
 function startNewBet(){
-  const id = genBetId();
-  $('betId').value = id;
-  $('shareUrl').value = currentShareUrl();
+  $('betId').value = '';
+
+  const url = new URL(window.location.href);
+  url.searchParams.delete('bet');
+  history.replaceState(null, '', url.toString());
+
+  $('shareUrl').value = url.toString();
   renderQR();
-  $('newBetNote').style.display = 'flex';
+  $('newBetNote').style.display = 'none';
 }
 
 /* ---------- Wire UI ---------- */
