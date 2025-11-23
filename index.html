@@ -529,7 +529,8 @@ if (b[0] === ethers.ZeroAddress){
 }
 
 // ✅ bet not live yet or already resolved/refunded
-if (b[7] !== 1){ // 1 = Live
+const state = Number(b[7]);
+if (state !== 1){ // 1 = Live
   $('actionStatus').textContent = '❌ Voting not available';
   return;
 }
