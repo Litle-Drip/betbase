@@ -3,665 +3,577 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
-<title>THE JUICE /// V2</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
+<title>The Juice</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
 
 <style>
   :root {
-    --bg: #030303;
-    --surface: #0e0e10;
-    --surface-glass: rgba(20, 20, 25, 0.7);
-    --border: #222;
-    --border-active: #444;
-    --text-main: #ffffff;
-    --text-dim: #666;
-    
-    /* The "Juice" Accent */
-    --accent: #ccff00; 
-    --accent-glow: rgba(204, 255, 0, 0.15);
-    --accent-dim: #4d6000;
-    
-    --radius: 24px;
-    --font-ui: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --bg: #0A0B0D;
+    --surface: #1E2026;
+    --primary: #0052FF; /* Coinbase Blue */
+    --primary-hover: #004ad9;
+    --text: #FFFFFF;
+    --text-secondary: #8A919E;
+    --border: #2B2F36;
+    --success: #05B169;
+    --error: #DF3349;
+    --radius: 16px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
-  * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
   
   body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
     margin: 0;
-    background-color: var(--bg);
-    background-image: 
-      radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%),
-      linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
-    color: var(--text-main);
-    font-family: var(--font-ui);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     min-height: 100vh;
-    padding-bottom: 40px;
+    padding: 20px;
   }
 
-  /* --- TYPOGRAPHY --- */
-  h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.03em; }
-  .mono { font-family: var(--font-mono); }
-  .label { 
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; 
-    color: var(--text-dim); font-weight: 600; margin-bottom: 8px; display: block;
+  /* --- Layout & Container --- */
+  .app-container {
+    width: 100%;
+    max-width: 480px; /* Phone width focus */
+    margin-top: 40px;
   }
-  
-  /* --- LAYOUT UTILS --- */
-  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 24px; }
-  @media(min-width: 900px) { .grid-3 { grid-template-columns: 1.2fr 1fr 0.8fr; } }
-  
-  .row { display: flex; align-items: center; gap: 10px; }
-  .col { display: flex; flex-direction: column; gap: 4px; }
-  .between { justify-content: space-between; }
-  .spacer { height: 20px; }
 
-  /* --- HEADER & HUD --- */
-  .header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+  /* --- Header --- */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
   }
-  .brand { font-size: 24px; display: flex; align-items: center; gap: 12px; }
-  .brand span { color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
   
-  .hud {
-    display: flex; gap: 16px; flex-wrap: wrap; 
-    background: var(--surface); padding: 12px 20px; border-radius: 999px;
-    border: 1px solid var(--border); margin-bottom: 30px;
-  }
-  .hud-item { display: flex; flex-direction: column; }
-  .hud-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
-  .hud-val { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-main); }
-  .hud-val.accent { color: var(--accent); }
+  .brand { font-weight: 700; font-size: 20px; letter-spacing: -0.5px; }
+  .brand span { color: var(--primary); }
 
-  /* --- CARDS (GLASS) --- */
+  .wallet-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .wallet-btn:hover { background: rgba(255,255,255,0.15); }
+  .wallet-btn.connected { background: rgba(5, 177, 105, 0.2); color: var(--success); }
+
+  /* --- Cards --- */
   .card {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
+    background: var(--surface);
     border-radius: var(--radius);
-    padding: 24px;
-    transition: transform 0.2s ease, border-color 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .card:hover { border-color: var(--border-active); }
-  .card::before {
-    content:''; position: absolute; top:0; left:0; width:100%; height:4px;
-    background: linear-gradient(90deg, transparent, var(--border-active), transparent);
-    opacity: 0.5;
+    padding: 32px 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
   }
 
-  /* --- INPUTS & BUTTONS REIMAGINED --- */
-  .btn {
-    height: 48px; padding: 0 20px;
-    border-radius: 12px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text-main);
-    font-weight: 600; cursor: pointer;
-    font-family: var(--font-ui); font-size: 14px;
-    transition: all 0.15s ease;
-    display: inline-flex; align-items: center; justify-content: center;
+  /* --- Hero Input (The Money) --- */
+  .money-group { text-align: center; margin-bottom: 30px; }
+  .money-label { color: var(--text-secondary); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  
+  .input-wrapper { position: relative; display: inline-block; margin-top: 10px; }
+  .big-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 56px;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    outline: none;
+    padding: 0;
+    letter-spacing: -1px;
   }
-  .btn:hover { background: #1a1a1a; border-color: #666; transform: translateY(-1px); }
+  .big-input::placeholder { color: var(--border); }
+  
+  .currency-toggle {
+    margin-top: 8px;
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+
+  /* --- Details Grid --- */
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  .detail-item label { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 6px; }
+  .detail-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+  }
+  .detail-input:focus { border-color: var(--primary); }
+
+  /* --- Buttons --- */
+  .btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
   .btn:active { transform: scale(0.98); }
   
-  .btn.primary {
-    background: var(--accent); color: #000;
-    border: none; box-shadow: 0 0 20px var(--accent-glow);
-    font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-  }
-  .btn.primary:hover { background: #d4ff33; box-shadow: 0 0 30px var(--accent-glow); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-hover); }
   
-  .btn.ghost { background: transparent; border: 1px solid var(--border); }
-  .btn.small { height: 32px; font-size: 12px; padding: 0 12px; }
-  .btn.connected { border-color: var(--accent); color: var(--accent); }
-
-  /* --- THE "HERO" STAKE INPUT --- */
-  .stake-hero {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #000; border: 1px solid var(--border);
-    border-radius: 16px; padding: 6px;
-    margin-bottom: 12px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .stake-hero:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
-
-  .hero-input {
-    background: transparent; border: none; color: var(--text-main);
-    font-family: var(--font-mono); font-size: 32px; font-weight: 700;
-    width: 100%; padding: 12px 16px;
-  }
+  .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text); margin-top: 12px; }
+  .btn-danger { background: rgba(223, 51, 73, 0.15); color: var(--error); margin-top: 12px; }
   
-  .ctrl-stack { display: flex; gap: 4px; }
-  .ctrl-btn {
-    width: 42px; height: 50px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text-dim); font-size: 20px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.1s;
-  }
-  .ctrl-btn:hover { color: var(--accent); background: #111; }
-  .ctrl-btn:active { background: var(--accent); color: #000; }
+  .btn-group { display: flex; gap: 12px; margin-top: 12px; }
 
-  .mode-toggle {
-    display: flex; background: var(--surface); padding: 4px; border-radius: 10px; border: 1px solid var(--border);
-  }
-  .mode-btn {
-    padding: 6px 12px; font-size: 11px; border-radius: 6px; 
-    border: none; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: 700;
-  }
-  .mode-btn.active { background: var(--accent-dim); color: var(--accent); }
-
-  /* --- STANDARD INPUTS --- */
-  .input {
-    width: 100%; height: 48px; background: #000; border: 1px solid var(--border);
-    border-radius: 12px; color: var(--text-main); padding: 0 16px;
-    font-family: var(--font-mono); font-size: 14px;
-    transition: border-color 0.2s;
-  }
-  .input:focus { border-color: var(--accent); }
-  .input[readonly] { background: var(--surface); color: var(--text-dim); }
-
-  /* --- VOTING ARENA --- */
-  .vote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
-  .vote-col { 
-    background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; border: 1px solid var(--border);
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .vote-btn { height: 40px; font-size: 12px; }
-
-  /* --- QR & IDEAS --- */
-  #qrBox {
-    background: white; padding: 10px; border-radius: 12px;
-    display: flex; justify-content: center; align-items: center;
-    width: 100%; aspect-ratio: 1; max-width: 180px; margin: 0 auto;
-  }
-  .idea-box {
-    background: linear-gradient(135deg, #111, #080808);
-    border: 1px dashed var(--border); border-radius: 12px; padding: 16px;
-    text-align: center; font-style: italic; color: var(--text-dim);
-    margin-bottom: 12px; font-size: 14px; min-height: 60px; display: flex; align-items: center; justify-content: center;
-  }
-
-  /* --- UTILS & STATUS --- */
-  .status-text { font-size: 12px; font-family: var(--font-mono); color: var(--text-dim); margin-top: 8px; display: block; }
-  .success-pill {
-    background: var(--accent-dim); color: var(--accent); padding: 8px 12px; 
-    border-radius: 8px; font-size: 12px; display: none; margin-top: 12px;
-    text-align: center; border: 1px solid var(--accent);
-  }
+  /* --- State Views --- */
+  .hidden { display: none !important; }
   
-  /* Quick Presets Row */
-  .presets { display: flex; gap: 8px; margin-top: 8px; }
-  .preset-btn {
-    flex: 1; background: transparent; border: 1px solid var(--border);
-    color: var(--text-dim); border-radius: 8px; padding: 6px; font-size: 11px; cursor: pointer;
+  .status-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    width: 100%;
+    text-align: center;
   }
-  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .status-open { background: rgba(0, 82, 255, 0.15); color: var(--primary); }
+  .status-live { background: rgba(5, 177, 105, 0.15); color: var(--success); }
+  .status-ended { background: var(--border); color: var(--text-secondary); }
+
+  /* --- Vote Box --- */
+  .vote-section { text-align: center; margin-top: 20px; }
+  .vote-title { color: var(--text-secondary); font-size: 13px; margin-bottom: 10px; }
+
+  /* --- QR & Share --- */
+  #qrBox { display: flex; justify-content: center; margin: 20px 0; padding: 10px; background: white; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; }
+  .share-link {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    color: var(--text-secondary);
+    font-size: 12px;
+    word-break: break-all;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  /* --- Toast/Notifications --- */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  /* --- Footer Info --- */
+  .footer-info { text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 12px; }
+  .footer-info a { color: var(--text-secondary); text-decoration: underline; }
 
 </style>
 </head>
 <body>
 
-<div class="container">
-  
-  <header class="header">
-    <div class="brand">🧃 <span class="mono">THE JUICE</span></div>
-    <div class="row">
-      <div id="addrPill" class="label" style="margin:0; opacity:0.5; font-size:10px;">Loading Contract...</div>
-      <button id="btnConnect" class="btn small primary">Connect Wallet</button>
-      <button id="btnSwitch" class="btn small ghost">Switch Chain</button>
-    </div>
-  </header>
+  <div class="app-container">
+    <header>
+      <div class="brand">The<span>Juice</span></div>
+      <button id="btnWallet" class="wallet-btn">Connect Wallet</button>
+    </header>
 
-  <div class="hud between">
-    <div class="hud-item">
-      <span class="hud-label">Pot Potential</span>
-      <div class="row"><span id="sbPotEth" class="hud-val accent">0.0000</span> <span class="hud-val" style="opacity:0.5">ETH</span></div>
+    <div id="viewCreate" class="card">
+      <div class="money-group">
+        <div class="money-label">I want to bet</div>
+        <div class="input-wrapper">
+          <input id="inputAmount" type="number" class="big-input" placeholder="0.00" step="any">
+        </div>
+        <button id="toggleCurrency" class="currency-toggle">ETH</button>
+      </div>
+
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Join Deadline (Minutes)</label>
+          <input id="joinMins" type="number" class="detail-input" value="15">
+        </div>
+        <div class="detail-item">
+          <label>Resolve Deadline (Minutes)</label>
+          <input id="resolveMins" type="number" class="detail-input" value="30">
+        </div>
+      </div>
+
+      <div class="detail-item" style="margin-bottom: 20px;">
+        <label>Total incl. 2.5% fee: <span id="previewTotal">0.00 ETH</span></label>
+      </div>
+
+      <button id="btnCreate" class="btn btn-primary">Create Bet</button>
     </div>
-    <div class="hud-item">
-      <span class="hud-label">Winner Take</span>
-      <div class="row"><span id="sbWinEth" class="hud-val">0.0000</span> <span class="hud-val" style="opacity:0.5">ETH</span></div>
+
+    <div id="viewManage" class="card hidden">
+      <div id="betStatusPill" class="status-pill status-open">Loading...</div>
+      
+      <div class="money-group">
+        <div class="money-label">Pot Size</div>
+        <div class="big-input" id="potDisplay">0.00 ETH</div>
+        <div class="currency-toggle" id="potUsdDisplay" style="cursor:default">$0.00</div>
+      </div>
+
+      <div id="actionJoin" class="hidden">
+        <p style="text-align:center; color:var(--text-secondary); font-size:14px; margin-bottom:20px;">
+          Your friend is betting <span id="joinStakeAmt">...</span> ETH.
+        </p>
+        <button id="btnJoin" class="btn btn-primary">Match Stake & Join</button>
+      </div>
+
+      <div id="actionVote" class="hidden">
+        <p style="text-align:center; color:var(--text-secondary); font-size:14px;">Who won the bet?</p>
+        <div class="btn-group">
+          <button id="voteCreator" class="btn btn-secondary">Creator</button>
+          <button id="voteOpponent" class="btn btn-secondary">Opponent</button>
+        </div>
+        <div id="myVoteStatus" style="text-align:center; margin-top:10px; color:var(--primary); font-size:12px;"></div>
+      </div>
+
+      <div id="actionPayout" class="hidden">
+        <button id="btnResolve" class="btn btn-primary">Payout Winner</button>
+      </div>
+
+       <div id="actionRefund" class="hidden">
+        <button id="btnRefund" class="btn btn-danger">Claim Refund</button>
+      </div>
+
+      <div id="shareSection" style="margin-top: 30px; border-top: 1px solid var(--border); padding-top:20px;">
+        <div class="money-label" style="margin-bottom:15px">Share this bet</div>
+        <div id="qrBox"></div>
+        <div class="share-link" id="shareUrl">...</div>
+        <button id="btnCopy" class="btn btn-secondary" style="padding:10px; font-size:14px;">Copy Link</button>
+      </div>
     </div>
-    <div class="hud-item">
-      <span class="hud-label">USD Value</span>
-      <div class="row"><span id="sbPotUsd" class="hud-val">$0.00</span></div>
-    </div>
-    <div class="hud-item">
-        <a id="lastTx" href="#" target="_blank" class="hud-label" style="text-decoration: underline; cursor: pointer;">View on Chain ↗</a>
-        <div id="sbState" class="hud-val" style="font-size: 12px;">Waiting...</div>
+
+    <div class="footer-info">
+      Contract: <a href="#" id="linkContract" target="_blank">View on BaseScan</a>
     </div>
   </div>
 
-  <div class="grid-3">
-    
-    <div class="card">
-      <div class="between row" style="margin-bottom: 20px;">
-        <h3>Initiate Bet</h3>
-        <button id="btnNewBet" class="btn small ghost">New Session</button>
-      </div>
-      
-      <label class="label">Stake Amount</label>
-      
-      <div class="stake-hero">
-        <div style="flex:1">
-          <input id="stakeMain" type="number" step="0.0001" value="0.0014" class="hero-input" placeholder="0.00">
-        </div>
-        <div class="col" style="padding-right: 6px;">
-           <div class="mode-toggle">
-             <button id="stakeModeEth" class="mode-btn active">ETH</button>
-             <button id="stakeModeUsd" class="mode-btn">USD</button>
-           </div>
-        </div>
-      </div>
-      
-      <div class="row between">
-        <div class="ctrl-stack">
-            <button id="ethMinus" class="ctrl-btn">−</button>
-            <button id="ethPlus" class="ctrl-btn">+</button>
-        </div>
-        <div class="presets">
-            <button class="preset-btn" id="usd1">$1</button>
-            <button class="preset-btn" id="usd5">$5</button>
-            <button class="preset-btn" id="usd20">$20</button>
-        </div>
-      </div>
-
-      <input id="stakeEth" type="hidden" value="0.0014"/>
-      <input id="stakeUsd" type="hidden" value="5"/>
-
-      <div class="spacer"></div>
-      
-      <div class="row">
-        <div style="flex:1">
-           <label class="label">Join Deadline (Mins)</label>
-           <input id="joinMins" class="input" type="number" min="5" value="15">
-        </div>
-        <div style="flex:1">
-            <label class="label">Resolve Deadline (Mins)</label>
-            <input id="resolveMins" class="input" type="number" min="30" value="30">
-        </div>
-      </div>
-
-      <div class="spacer"></div>
-      
-      <button id="btnCreate" class="btn primary" style="width: 100%;">Create & Fund Escrow</button>
-      <div class="row between" style="margin-top: 10px;">
-         <div id="createStatus" class="status-text">Ready to deploy.</div>
-         <button id="btnReset" class="btn small ghost" style="border:none; color:var(--text-dim)">Reset</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Live Operations</h3>
-      <p class="label" style="text-transform: none; margin-top: 4px;">Join an existing ID or Resolve Outcomes</p>
-      
-      <div class="spacer"></div>
-
-      <div class="col">
-        <button id="btnJoin" class="btn ghost" style="width: 100%; border-color: var(--accent);">Join & Match Stake</button>
-        <button id="btnPayout" class="btn ghost" style="width: 100%;">Finalize Payout</button>
-        <button id="btnRefund" class="btn small ghost" style="width: 100%; border:none; opacity: 0.7;">Request Refund (Emergency)</button>
-      </div>
-
-      <div class="spacer"></div>
-      <div style="height: 1px; background: var(--border); margin: 0 10px;"></div>
-      <div class="spacer"></div>
-
-      <label class="label" style="text-align: center;">Consensus Mechanism</label>
-      <div class="vote-grid">
-        <div class="vote-col">
-            <span class="label" style="text-align: center;">Creator Says</span>
-            <button id="creatorWon" class="btn small ghost vote-btn">I Won</button>
-            <button id="creatorSaysOpponent" class="btn small ghost vote-btn">Opponent Won</button>
-        </div>
-        <div class="vote-col">
-            <span class="label" style="text-align: center;">Opponent Says</span>
-            <button id="opponentSaysCreator" class="btn small ghost vote-btn">Creator Won</button>
-            <button id="opponentWon" class="btn small ghost vote-btn">I Won</button>
-        </div>
-      </div>
-
-      <div id="actionStatus" class="status-text" style="text-align: center; margin-top: 12px;">Waiting for action...</div>
-      <div id="newBetNote" class="success-pill">🆕 BET DEPLOYED. SHARE QR.</div>
-    </div>
-
-    <div class="card">
-      <h3>Share / Sync</h3>
-      <div class="spacer"></div>
-      
-      <div class="row">
-        <input id="betId" class="input" placeholder="Enter Bet ID" style="text-align: center; font-weight: 700;">
-      </div>
-      <div class="row" style="margin-top: 8px;">
-          <input id="shareUrl" class="input" readonly style="font-size: 10px; color: var(--text-dim);">
-          <button id="btnCopy" class="btn ghost" style="width: 60px;">Copy</button>
-      </div>
-
-      <div class="spacer"></div>
-      <div id="qrBox"></div>
-      
-      <div class="spacer"></div>
-      <label class="label" style="text-align: center;">Randomizer</label>
-      <div class="idea-box"><span id="ideaBox">Tap shuffle for a challenge</span></div>
-      <button id="btnShuffle" class="btn small ghost" style="width: 100%;">Shuffle Challenge</button>
-    </div>
-
-  </div>
-</div>
+  <div id="toast" class="toast">Notification</div>
 
 <script>
-/* ---------- Config ---------- */
-const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'https://sepolia.basescan.org' };
-const FEE_BPS = 250; 
-let   ETH_USD = 3500;
-const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433';
+/* ---------- Configuration ---------- */
+const CONFIG = {
+  chainId: '0x14a34', // Base Sepolia
+  rpc: 'https://sepolia.base.org',
+  explorer: 'https://sepolia.basescan.org',
+  contract: '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433',
+  feeBps: 250,
+  ethPrice: 3500 // Fallback
+};
 
-/* ---------- Shortcuts ---------- */
+/* ---------- State & Utils ---------- */
+const state = {
+  provider: null,
+  signer: null,
+  address: null,
+  currency: 'ETH', // 'ETH' or 'USD'
+  betId: null,
+  contract: null
+};
+
 const $ = id => document.getElementById(id);
-const fmtUsd = v => '$' + v.toFixed(2);
+const toast = (msg) => {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+};
+const shortAddr = (a) => a ? `${a.substring(0,6)}...${a.substring(38)}` : '';
 
-/* ---------- Header ---------- */
-$('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS.substring(0,6)}...${CONTRACT_ADDRESS.substring(38)}`;
-
-/* ---------- QR + share helpers ---------- */
-function currentShareUrl() {
-  const betId = $('betId').value;
-  try {
-    const u = new URL(location.href);
-    if (betId) u.searchParams.set('bet', betId);
-    else u.searchParams.delete('bet');
-    return u.toString();
-  } catch { return location.href; }
-}
-let qr = null;
-function renderQR() {
-  const node = $('qrBox'); node.innerHTML = '';
-  qr = new QRCode(node, { text: currentShareUrl(), width: 160, height: 160, colorDark:'#000000', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
-}
-function setCopyPulse(el){
-  const original = el.textContent;
-  el.textContent = "COPIED";
-  el.style.borderColor = "var(--accent)";
-  el.style.color = "var(--accent)";
-  setTimeout(()=>{
-      el.textContent = original;
-      el.style.borderColor = "";
-      el.style.color = "";
-  }, 1000);
-}
-
-/* ---------- USD/ETH preview ---------- */
-function updatePreview() {
-  const eth = parseFloat($('stakeEth').value || '0') || 0;
-  const pot = eth * 2;
-  const win = pot * (1 - FEE_BPS / 10000);
-  $('sbPotEth').textContent = pot.toFixed(4);
-  $('sbPotUsd').textContent = fmtUsd(pot * ETH_USD);
-  $('sbWinEth').textContent = win.toFixed(4);
-  // Also update win usd for consistency if needed, but not in HUD currently
-}
-
-/* ---------- Single stake box + mode toggle ---------- */
-let stakeMode = 'ETH';
-
-function applyStakeFromEth(rawEth) {
-  const eth = Math.max(0, Number(rawEth) || 0);
-  $('stakeEth').value = eth.toFixed(4);
-  $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
-  updatePreview();
-}
-
-function handleStakeMainInput() {
-  const num = Number($('stakeMain').value) || 0;
-  if (stakeMode === 'ETH') {
-    applyStakeFromEth(num);
-  } else {
-    const eth = num / ETH_USD;
-    applyStakeFromEth(eth);
-    $('stakeMain').value = num.toFixed(2); 
-  }
-}
-
-function setStakeMode(mode) {
-  if (mode !== 'ETH' && mode !== 'USD') return;
-  stakeMode = mode;
-  
-  // Update Visuals
-  $('stakeModeEth').classList.toggle('active', mode === 'ETH');
-  $('stakeModeUsd').classList.toggle('active', mode === 'USD');
-
-  const eth = parseFloat($('stakeEth').value || '0') || 0;
-  if (mode === 'ETH') {
-    $('stakeMain').step = '0.0001';
-    $('stakeMain').value = eth.toFixed(4);
-  } else {
-    $('stakeMain').step = '1';
-    const usd = parseFloat($('stakeUsd').value || '0') || 0;
-    $('stakeMain').value = usd.toFixed(2);
-  }
-}
-
-/* ---------- Wallet / ethers ---------- */
-let provider, signer;
+/* ---------- ABI ---------- */
 const ABI = [
-  {type:'function',stateMutability:'payable',name:'createBet',inputs:[{name:'stakeWei',type:'uint256'},{name:'feeBps',type:'uint16'},{name:'joinWindowSeconds',type:'uint64'},{name:'resolveWindowSeconds',type:'uint64'}],outputs:[{name:'betId',type:'uint256'}]},
-  {type:'function',stateMutability:'payable',name:'joinBet',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
-  {type:'function',stateMutability:'nonpayable',name:'confirmWinner',inputs:[{name:'betId',type:'uint256'},{name:'creatorWon',type:'bool'}],outputs:[]},
-  {type:'function',stateMutability:'nonpayable',name:'refund',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
-  {type:'function',stateMutability:'nonpayable',name:'resolve',inputs:[{name:'betId',type:'uint256'}],outputs:[]},
-  {type:'function',stateMutability:'view',name:'getBet',inputs:[{name:'betId',type:'uint256'}],outputs:[{type:'address'},{type:'address'},{type:'uint256'},{type:'uint16'},{type:'uint64'},{type:'uint64'},{type:'uint64'},{type:'uint8'},{type:'int8'},{type:'int8'}]},
-  {type:'function',stateMutability:'view',name:'nextBetId',inputs:[],outputs:[{type:'uint256'}]}
+  "function createBet(uint256 stakeWei, uint16 feeBps, uint64 joinWindowSeconds, uint64 resolveWindowSeconds) payable returns (uint256)",
+  "function joinBet(uint256 betId) payable",
+  "function confirmWinner(uint256 betId, bool creatorWon)",
+  "function refund(uint256 betId)",
+  "function resolve(uint256 betId)",
+  "function getBet(uint256 betId) view returns (address creator, address opponent, uint256 stakeWei, uint16 feeBps, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 creatorVote, int8 opponentVote)",
+  "function nextBetId() view returns (uint256)"
 ];
 
-async function ensureBase(){
-  if (!window.ethereum) { alert('MetaMask not found'); throw new Error('no wallet'); }
-  const chain = await window.ethereum.request({ method:'eth_chainId' });
-  if (chain !== BASE.idHex){
-    try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE.idHex }] }); }
-    catch(e){
-      if (e.code === 4902){
-        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: BASE.idHex, chainName:'Base Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer]}] });
-      } else { throw e; }
+/* ---------- Wallet Logic ---------- */
+async function initWallet() {
+  if (!window.ethereum) return toast("Please install a wallet.");
+  try {
+    state.provider = new ethers.BrowserProvider(window.ethereum);
+    const accounts = await state.provider.send("eth_requestAccounts", []);
+    handleAccountsChanged(accounts);
+    checkNetwork();
+  } catch (e) { console.error(e); }
+}
+
+async function checkNetwork() {
+  const net = await state.provider.getNetwork();
+  if (Number(net.chainId) !== 84532) { // Base Sepolia ID
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: CONFIG.chainId }],
+      });
+    } catch (switchError) {
+      // Check if the chain has not been added
+      if (switchError.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: CONFIG.chainId,
+            chainName: 'Base Sepolia',
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            rpcUrls: [CONFIG.rpc],
+            blockExplorerUrls: [CONFIG.explorer]
+          }]
+        });
+      }
     }
   }
+  state.signer = await state.provider.getSigner();
+  state.contract = new ethers.Contract(CONFIG.contract, ABI, state.signer);
 }
 
-async function connect(){
-  try{
-    await ensureBase();
-    provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send('eth_requestAccounts',[]);
-    signer = await provider.getSigner();
-    $('sbState').textContent = 'Connected';
-    $('sbState').style.color = 'var(--accent)';
-    $('btnConnect').textContent = 'Connected';
-    $('btnConnect').classList.add('connected');
-  }catch(e){
-    $('sbState').textContent = 'Not Connected';
+function handleAccountsChanged(accounts) {
+  if (accounts.length === 0) {
+    $('btnWallet').textContent = "Connect Wallet";
+    $('btnWallet').classList.remove('connected');
+    state.address = null;
+  } else {
+    state.address = accounts[0];
+    $('btnWallet').textContent = shortAddr(accounts[0]);
+    $('btnWallet').classList.add('connected');
   }
 }
 
-function getContract(){
-  if (!signer) throw new Error('Connect your wallet first.');
-  return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-}
-
-/* ---------- Actions ---------- */
-async function doCreate(){
-  $('createStatus').textContent = 'Initiating transaction...';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const stakeEth = String($('stakeEth').value || '0');
-    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
-    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
-    $('joinMins').value = jm; $('resolveMins').value = rm;
-
-    const stakeWei = ethers.parseEther(stakeEth);
-    const tx = await c.createBet(stakeWei, FEE_BPS, BigInt(jm * 60), BigInt(rm * 60), { value: stakeWei });
-    $('createStatus').textContent = 'Mining: ' + tx.hash.substring(0,10) + '...';
-
-    await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('createStatus').textContent = '✅ Deployment Successful';
-
-    const nextId = await c.nextBetId();              
-    const betId  = (BigInt(nextId) - 1n).toString(); 
-    $('betId').value = betId;
-    $('shareUrl').value = currentShareUrl();
-    renderQR();
-    $('newBetNote').style.display = 'block';
-  }catch(e){
-    console.error('createBet error', e);
-    let msg = e?.shortMessage || e?.message || 'Failed';
-    if (e.code === 4001) msg = 'User rejected transaction';
-    $('createStatus').textContent = '❌ ' + msg;
-  }
-}
+/* ---------- Logic: Create Bet ---------- */
+function updateCreatePreview() {
+  const val = parseFloat($('inputAmount').value) || 0;
+  if (val === 0) { $('previewTotal').textContent = "0.00 ETH"; return; }
   
-async function doJoin(){
-  $('actionStatus').textContent = 'Confirming...';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const b = await c.getBet(betId);
-    const stakeWei = b[2];
-    const tx = await c.joinBet(betId, { value: stakeWei });
+  let ethVal = state.currency === 'ETH' ? val : val / CONFIG.ethPrice;
+  const total = ethVal; // Fee is taken FROM pot, not added on top in this contract logic, but let's display pure stake
+  $('previewTotal').textContent = `${total.toFixed(5)} ETH Stake`;
+}
+
+$('toggleCurrency').onclick = () => {
+  state.currency = state.currency === 'ETH' ? 'USD' : 'ETH';
+  $('toggleCurrency').textContent = state.currency;
+  updateCreatePreview();
+};
+
+$('inputAmount').addEventListener('input', updateCreatePreview);
+
+$('btnCreate').onclick = async () => {
+  if (!state.contract) await initWallet();
+  
+  const rawVal = parseFloat($('inputAmount').value);
+  if (!rawVal) return toast("Enter an amount");
+
+  const ethAmount = state.currency === 'USD' ? rawVal / CONFIG.ethPrice : rawVal;
+  const weiAmount = ethers.parseEther(ethAmount.toFixed(18));
+  const joinSecs = parseInt($('joinMins').value) * 60;
+  const resolveSecs = parseInt($('resolveMins').value) * 60;
+
+  $('btnCreate').textContent = "Confirming...";
+  
+  try {
+    const tx = await state.contract.createBet(weiAmount, CONFIG.feeBps, joinSecs, resolveSecs, { value: weiAmount });
+    toast("Transaction sent...");
     await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('actionStatus').textContent = '✅ Entry Confirmed';
-  }catch(e){
-    let msg = e?.shortMessage || e?.message || 'Failed';
-    if (e.code === 4001) msg = 'User rejected';
-    $('actionStatus').textContent = '❌ ' + msg;
+    
+    // Predict ID (Next - 1)
+    const nextId = await state.contract.nextBetId();
+    const newId = Number(nextId) - 1;
+    window.location.search = `?bet=${newId}`;
+  } catch (e) {
+    console.error(e);
+    toast("Error: " + (e.shortMessage || e.message));
+    $('btnCreate').textContent = "Create Bet";
+  }
+};
+
+/* ---------- Logic: Manage/View Bet ---------- */
+async function loadBet(id) {
+  state.betId = id;
+  $('viewCreate').classList.add('hidden');
+  $('viewManage').classList.remove('hidden');
+  
+  if (!state.contract) await initWallet();
+
+  try {
+    const b = await state.contract.getBet(id);
+    const betStruct = {
+      creator: b[0],
+      opponent: b[1],
+      stake: b[2],
+      state: b[7], // 0:Open, 1:Live, 2:Resolved, 3:Refunded
+      creatorVote: b[8],
+      opponentVote: b[9],
+      joinDeadline: Number(b[4]),
+      resolveDeadline: Number(b[5])
+    };
+    
+    renderBetUI(betStruct);
+  } catch (e) {
+    console.error(e);
+    $('betStatusPill').textContent = "Bet Not Found";
   }
 }
 
-async function doVote(creatorWon){
-  $('actionStatus').textContent = 'Broadcasting Vote...';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.confirmWinner(betId, Boolean(creatorWon));
-    await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('actionStatus').textContent = '✅ Vote Recorded';
-  }catch(e){
-    let msg = e?.shortMessage || e?.message || 'Failed';
-    if (e.code === 4001) msg = 'User rejected';
-    $('actionStatus').textContent = '❌ ' + msg;
+function renderBetUI(bet) {
+  const potEth = ethers.formatEther(bet.stake) * 2; // Pot is 2x stake
+  const isMeCreator = state.address && bet.creator.toLowerCase() === state.address.toLowerCase();
+  const isMeOpponent = state.address && bet.opponent.toLowerCase() === state.address.toLowerCase();
+  const now = Math.floor(Date.now() / 1000);
+
+  // 1. Status
+  const statuses = ["Waiting for Opponent", "Live - In Progress", "Resolved - Paid", "Refunded"];
+  const statusColors = ["status-open", "status-live", "status-ended", "status-ended"];
+  $('betStatusPill').textContent = statuses[bet.state];
+  $('betStatusPill').className = `status-pill ${statusColors[bet.state]}`;
+
+  // 2. Money
+  // If open, pot is just stake. If live, pot is 2x.
+  const displayPot = bet.state === 0 ? ethers.formatEther(bet.stake) : potEth;
+  $('potDisplay').textContent = parseFloat(displayPot).toFixed(4) + " ETH";
+  $('potUsdDisplay').textContent = "≈ $" + (parseFloat(displayPot) * CONFIG.ethPrice).toFixed(2);
+
+  // 3. Actions
+  $('actionJoin').classList.add('hidden');
+  $('actionVote').classList.add('hidden');
+  $('actionPayout').classList.add('hidden');
+  $('actionRefund').classList.add('hidden');
+  $('shareSection').classList.add('hidden');
+
+  // State 0: Open
+  if (bet.state === 0) {
+    $('shareSection').classList.remove('hidden');
+    generateQR();
+    
+    if (!isMeCreator) {
+      $('actionJoin').classList.remove('hidden');
+      $('joinStakeAmt').textContent = ethers.formatEther(bet.stake);
+      
+      $('btnJoin').onclick = async () => {
+        try {
+          const tx = await state.contract.joinBet(state.betId, { value: bet.stake });
+          toast("Joining...");
+          await tx.wait();
+          window.location.reload();
+        } catch(e) { toast(e.shortMessage || "Error joining"); }
+      };
+    } else {
+        // Creator can refund if deadline passed
+        if (now > bet.joinDeadline) $('actionRefund').classList.remove('hidden');
+    }
   }
-}
 
-async function doRefund(){
-  $('actionStatus').textContent = 'Requesting Refund...';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.refund(betId);
-    await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('actionStatus').textContent = '✅ Refunded';
-  }catch(e){
-    let msg = e?.shortMessage || e?.message || 'Failed';
-    if (e.code === 4001) msg = 'User rejected';
-    $('actionStatus').textContent = '❌ ' + msg;
+  // State 1: Live
+  if (bet.state === 1) {
+    if (isMeCreator || isMeOpponent) {
+       // Check if I voted
+       const myVote = isMeCreator ? bet.creatorVote : bet.opponentVote;
+       if (myVote === -1n || myVote === -1) { // -1 means no vote
+          $('actionVote').classList.remove('hidden');
+       } else {
+          $('myVoteStatus').textContent = "You voted: " + (myVote == 1 ? "Creator" : "Opponent");
+       }
+
+       // Check for Consensus or Timeout
+       if (bet.creatorVote !== -1n && bet.creatorVote === bet.opponentVote) {
+         $('actionPayout').classList.remove('hidden');
+       } else if (now > bet.resolveDeadline) {
+         $('actionRefund').classList.remove('hidden'); // Disagreement refund
+       }
+    }
   }
-}
-
-async function doPayout(){
-  $('actionStatus').textContent = 'Finalizing...';
-  try{
-    if (!signer) await connect();
-    const c = getContract();
-    const betId = BigInt(String($('betId').value||'0'));
-    const tx = await c.resolve(betId);
-    await tx.wait();
-    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
-    $('actionStatus').textContent = '✅ Payout Complete';
-  }catch(e){
-    let msg = e?.shortMessage || e?.message || 'Failed';
-    if (e.code === 4001) msg = 'User rejected';
-    $('actionStatus').textContent = '❌ ' + msg;
-  }
-}
-
-/* ---------- Bet Ideas ---------- */
-const IDEAS = [
-  "Make a 3-point shot", "Darts: Hit any double in 3 throws", "Darts: Bullseye", "Drink: Chug under 1 min", 
-  "Hockey: Hit crossbar", "Lacrosse: Top right corner", "Cornhole: 2 in a row", "Bottle Flip: 3 out of 5",
-  "Soccer: Crossbar in 3 tries", "Golf: Longest drive", "Gaming: 1v1 mid lane", "Pool: Bank shot only"
-];
-function shuffleIdea(){ $('ideaBox').textContent = IDEAS[Math.floor(Math.random()*IDEAS.length)]; }
-
-function genBetId(){ return String(Math.floor(10_000_000 + Math.random()*90_000_000)); }
-function startNewBet(){
-  const id = genBetId();
-  $('betId').value = id;
-  $('shareUrl').value = currentShareUrl();
-  renderQR();
-  $('newBetNote').style.display = 'block';
-  $('newBetNote').textContent = 'Local ID Generated. Create on Chain to finalize.';
-}
-
-/* ---------- Init ---------- */
-window.addEventListener('DOMContentLoaded', ()=>{
-  setStakeMode('ETH');
-  applyStakeFromEth($('stakeEth').value || '0');
-  $('stakeMain').addEventListener('input', handleStakeMainInput);
-
-  $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
-  $('stakeModeUsd').onclick = ()=> setStakeMode('USD');
-  $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
-  $('usd5').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 5;  handleStakeMainInput(); };
-  $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
-
-  $('ethPlus').onclick  = ()=>{
-    const v = Math.max(0, parseFloat($('stakeEth').value || '0') + 0.0001);
-    applyStakeFromEth(v);
-    if (stakeMode === 'ETH') $('stakeMain').value = v.toFixed(4);
+  
+  // Setup Vote Buttons
+  $('voteCreator').onclick = () => sendVote(true);
+  $('voteOpponent').onclick = () => sendVote(false);
+  $('btnResolve').onclick = async () => {
+      try { await (await state.contract.resolve(state.betId)).wait(); window.location.reload(); } catch(e){ toast(e.message); }
   };
-  $('ethMinus').onclick = ()=>{
-    const v = Math.max(0, parseFloat($('stakeEth').value || '0') - 0.0001);
-    applyStakeFromEth(v);
-    if (stakeMode === 'ETH') $('stakeMain').value = v.toFixed(4);
+  $('btnRefund').onclick = async () => {
+      try { await (await state.contract.refund(state.betId)).wait(); window.location.reload(); } catch(e){ toast(e.message); }
   };
+}
 
-  renderQR();
-  $('betId').addEventListener('input', ()=>{ $('shareUrl').value = currentShareUrl(); renderQR(); });
-  $('shareUrl').value = currentShareUrl();
-  $('btnCopy').onclick = async ()=>{ try{ await navigator.clipboard.writeText($('shareUrl').value); setCopyPulse($('btnCopy')); }catch{} };
+async function sendVote(creatorWon) {
+    try {
+        const tx = await state.contract.confirmWinner(state.betId, creatorWon);
+        toast("Submitting vote...");
+        await tx.wait();
+        window.location.reload();
+    } catch(e) { toast(e.shortMessage || "Error voting"); }
+}
 
-  $('btnConnect').onclick = connect;
-  $('btnSwitch').onclick  = async ()=>{ try { await ensureBase(); } catch {} };
+/* ---------- QR & Share ---------- */
+function generateQR() {
+  const url = window.location.href;
+  $('shareUrl').textContent = url;
+  $('qrBox').innerHTML = '';
+  new QRCode($('qrBox'), { text: url, width: 120, height: 120, colorDark: "#000000", colorLight: "#ffffff" });
+}
+$('btnCopy').onclick = () => {
+  navigator.clipboard.writeText(window.location.href);
+  toast("Link copied!");
+};
 
-  $('btnCreate').onclick = doCreate;
-  $('btnReset').onclick  = ()=>{ $('stakeEth').value='0.0014'; $('stakeUsd').value='5'; $('joinMins').value='15'; $('resolveMins').value='30'; updatePreview(); setStakeMode(stakeMode); };
-  $('btnJoin').onclick   = doJoin;
-  $('btnRefund').onclick = doRefund;
-  $('creatorWon').onclick= ()=>doVote(true);
-  $('creatorSaysOpponent').onclick= ()=>doVote(false);
-  $('opponentSaysCreator').onclick= ()=>doVote(true);
-  $('opponentWon').onclick= ()=>doVote(false);
-  $('btnPayout').onclick = doPayout;
+/* ---------- Initialization ---------- */
+window.addEventListener('DOMContentLoaded', () => {
+  $('linkContract').href = `${CONFIG.explorer}/address/${CONFIG.contract}`;
+  
+  // Check URL for ?bet=ID
+  const params = new URLSearchParams(window.location.search);
+  const betId = params.get('bet');
 
-  $('btnShuffle').onclick = shuffleIdea;
-  $('btnNewBet').onclick = startNewBet;
+  if (betId) {
+    loadBet(betId);
+  } else {
+    // We are creating
+    $('inputAmount').focus();
+  }
 
-  const p = new URLSearchParams(location.search); const b = p.get('bet'); if (b){ $('betId').value=b; $('shareUrl').value=currentShareUrl(); renderQR(); }
+  $('btnWallet').onclick = initWallet;
 });
+
 </script>
 </body>
 </html>
