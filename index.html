@@ -520,7 +520,35 @@ async function doVote(creatorWon){
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
-    const tx = await c.confirmWinner(betId, Boolean(creatorWon));
+const b = await c.getBet(betId);
+
+// ✅ bet doesn’t exist
+if (b[0] === ethers.ZeroAddress){
+  $('actionStatus').textContent = '❌ Bet not found';
+  return;
+}
+
+// ✅ bet not live yet or already resolved/refunded
+if (b[7] !== 1){ // 1 = Live
+  $('actionStatus').textContent = '❌ Voting not available';
+  return;
+}
+
+// ✅ voter must be creator or opponent
+const user = await signer.getAddress();
+if (user !== b[0] && user !== b[1]){
+  $('actionStatus').textContent = '❌ You are not part of this bet';
+  return;
+}
+
+// ✅ already voted? prevent duplicate vote tx
+if ((user === b[0] && b[8] !== -1) || (user === b[1] && b[9] !== -1)){
+  $('actionStatus').textContent = '✅ Vote already submitted';
+  return;
+}
+
+const tx = await c.confirmWinner(betId, Boolean(creatorWon));
+
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
     $('actionStatus').textContent = '✅ Vote submitted';
