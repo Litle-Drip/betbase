@@ -240,13 +240,15 @@
     }
     .card-header{
       display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:10px;
+      flex-direction:column;
+      gap:2px;
+      margin-bottom:18px;
     }
     .card-title{
-      font-size:18px;
+      font-size:20px;
       font-weight:600;
+      text-align:center;
+      margin-bottom:4px;
     }
     .card-sub{
       font-size:12px;
@@ -294,30 +296,31 @@
       text-align:center;
     }
     .stake-label{
-      font-size:12px;
+      font-size:13px;
       color:var(--muted);
-      margin-bottom:6px;
+      text-align:center;
+      margin-bottom:4px;
     }
     .stake-main{
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:10px;
-      margin-bottom:8px;
+      gap:14px;
+      margin-bottom:10px;
     }
     .stake-symbol{
-      font-size:18px;
+      font-size:20px;
       color:var(--muted);
     }
     .stake-amount{
-      font-size:30px;
+      font-size:36px;
       font-weight:600;
-      min-width:90px;
+      min-width:100px;
       text-align:center;
       border:none;
       outline:none;
       background:transparent;
-      color:var(--text);
+      xcolor:var(--text);
     }
     .stake-amount::-webkit-outer-spin-button,
     .stake-amount::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -579,6 +582,10 @@
   .addr{
     font-size:11px;
     padding:6px 12px;
+  }
+  .stake-amount{
+    font-size:30px;
+    min-width:90px;
   }
 }
    
