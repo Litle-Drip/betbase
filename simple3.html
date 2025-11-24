@@ -42,7 +42,7 @@
   align-items:center;
   justify-content:space-between;
   margin-bottom:12px;
-  max-width:960px;
+  max-width:640px;
   margin-left:auto;
   margin-right:auto;
   padding:0 16px;
@@ -147,8 +147,8 @@
   display:flex;
   flex-direction:column;
   gap:8px;
-  margin-bottom:6px;
-  max-width:960px;
+  margin-bottom:12px;
+  max-width:640px;
   margin-left:auto;
   margin-right:auto;
   padding:0 16px;
@@ -164,6 +164,7 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      text-align:center;
     }
     .subchips{
       display:flex;
@@ -567,7 +568,10 @@
       <div class="brand-logo">🧃</div>
       <span>The Juice</span>
     </div>
-    <button id="btnConnect" class="btn small ghost">Connect Wallet</button>
+    <div class="top-actions">
+  <button id="btnSwitch" class="btn small ghost">Switch network</button>
+  <button id="btnConnect" class="btn small ghost">Connect Wallet</button>
+</div>
   </header>
 
   <div class="subbar">
