@@ -282,14 +282,42 @@
     .row.wrap{flex-wrap:wrap}
     .stack{display:flex;flex-direction:column;gap:10px}
 
-    .idea-input{
-      border-radius:999px;
-      border:1px solid #27272f;
-      background:#101014;
-      color:var(--text);
-      padding:10px 16px;
-      font-size:14px;
-    }
+    /* Idea bar with inline dice button */
+.idea-row{
+  position:relative;
+  margin-bottom:18px;
+}
+
+.idea-input{
+  width:100%;
+  border-radius:18px;
+  border:1px solid #27272f;
+  background:#26262a;
+  color:var(--text);
+  padding:12px 48px 12px 16px;  /* space on right for dice */
+  font-size:14px;
+}
+
+/* Dice button inside the bar */
+.idea-dice{
+  position:absolute;
+  top:50%;
+  right:10px;
+  transform:translateY(-50%);
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  border:2px solid #2563eb;     /* blue ring like your reference */
+  background:#101014;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:18px;                /* size of the 🎲 emoji */
+}
+.idea-dice:hover{
+  background:#18181b;
+}
 
     .stake-area{
       margin-top:18px;      /* slightly closer to subtitle */
@@ -636,7 +664,12 @@
     min-width:90px;
   }
 }
-   
+   /* Hide title + subtitle only on the Create Bet panel */
+#panelCreate .card-header,
+#panelCreate .card-sub{
+  display:none;
+}
+
   </style>
 
   <!-- Libs -->
@@ -687,10 +720,15 @@
 
       <div class="card-sub">Set the bet, deadlines, and fund the escrow in one step.</div>
 
-      <!-- Idea text (reuses ideaBox + shuffle) -->
-      <div class="row" style="margin-bottom:10px">
-        <input id="ideaBox" class="idea-input" type="text" value="Golf: Hole in one!" />
-        <button id="btnShuffle" class="btn small ghost">Shuffle</button>
+            <!-- Idea text bar with inline dice button -->
+      <div class="idea-row">
+        <input
+          id="ideaBox"
+          class="idea-input"
+          type="text"
+          value="Golf: Hole in one!"
+        />
+        <button id="btnShuffle" class="idea-dice" aria-label="Random bet idea">🎲</button>
       </div>
 
       <!-- Stake area -->
@@ -720,7 +758,7 @@
 
       <!-- Join deadline -->
       <div style="margin-top:14px">
-        <div class="label">Join deadline (minutes)</div>
+        <div class="label">Join deadline</div>
         <div class="row wrap">
           <div class="quick-row">
             <button class="quick-chip" data-join="15">Quick (15m)</button>
@@ -733,7 +771,7 @@
 
       <!-- Resolve deadline -->
       <div style="margin-top:12px">
-        <div class="label">Resolve deadline (minutes)</div>
+        <div class="label">Resolve deadline</div>
         <div class="row wrap">
           <div class="quick-row">
             <button class="quick-chip" data-resolve="30">+30m</button>
