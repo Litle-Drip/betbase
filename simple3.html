@@ -230,13 +230,13 @@
 
     /* Card */
     .card{
-  border-radius:28px;
-  background:var(--card);
-  border:1px solid var(--border);
-  padding:20px 22px 22px;
-  box-shadow:0 18px 50px rgba(0,0,0,.55);
-  max-width:640px;
-  margin:0 auto;
+      border-radius:24px;
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:24px 24px 22px;       /* a bit more breathing room */
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
+      max-width:520px;              /* narrower box like your reference */
+      margin:0 auto 16px;           /* center + a little bottom gap */
     }
     .card-header{
       display:flex;
@@ -292,7 +292,7 @@
     }
 
     .stake-area{
-      margin-top:24px;
+      margin-top:18px;      /* slightly closer to subtitle */
       margin-bottom:20px;
       text-align:center;
     }
@@ -359,26 +359,27 @@
     .quick-row{
       display:flex;
       flex-wrap:wrap;
-      gap:8px;
+      gap:10px;
       margin-top:8px;
+      width:100%;
     }
     .quick-chip{
       border-radius:999px;
       border:1px solid #27272f;
       background:#101014;
       color:#e4e4e7;
-      padding:10px 18px;   /* bigger pill */
-      font-size:14px;      /* larger label text */
-      font-weight:500;
-      min-width:96px;      /* consistent width across chips */
+      padding:12px 20px;            /* taller & wider */
+      font-size:15px;               /* bigger label */
+      font-weight:600;              /* bolder like your ref */
+      flex:1 1 calc(25% - 10px);    /* up to 4 per row on desktop */
       text-align:center;
       cursor:pointer;
       white-space:nowrap;
     }
+
     .quick-chip:hover{
       border-color:#3f3f46;
     }
-
     .deadline-input{
       padding:12px 22px;
       font-size:15px;
