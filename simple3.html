@@ -292,7 +292,8 @@
     }
 
     .stake-area{
-      margin:16px 0 8px;
+      margin-top:24px;
+      margin-bottom:20px;
       text-align:center;
     }
     .stake-label{
@@ -313,14 +314,16 @@
       color:var(--muted);
     }
     .stake-amount{
-      font-size:36px;
-      font-weight:600;
+      font-size:34px;
+      font-weight:700;
       min-width:100px;
       text-align:center;
       border:none;
       outline:none;
       background:transparent;
-      xcolor:var(--text);
+      color:var(--accent);
+      letter-spacing:-0.02em;
+      line-height:1.05;
     }
     .stake-amount::-webkit-outer-spin-button,
     .stake-amount::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -557,7 +560,7 @@
     }
 @media(min-width:900px){
   .card-title{font-size:20px;}
-  .stake-amount{font-size:34px;}
+  .stake-amount{font-size:40px;}
   .stake-label{font-size:13px;}
 }
     @media(max-width:640px){
