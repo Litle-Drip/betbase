@@ -356,43 +356,47 @@
       color:var(--accent);
     }
 
-    /* Join / Resolve quick buttons – 4 even pills per row */
-    .quick-row{
-      display:grid;
-      grid-template-columns:repeat(4, minmax(0, 1fr));
-      gap:10px;
-      margin-top:10px;
-    }
+    
+    /* Join / Resolve pills – match the clean ETH mock */
+.quick-row{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
 
-    .quick-row .quick-chip,
-    .quick-row .deadline-input{
-      width:100%;          /* fill their grid cell */
-      text-align:center;
-    }
+.quick-row .quick-chip,
+.quick-row .deadline-input{
+  flex:1;
+  min-width:0;
+  text-align:center;
+}
 
-    /* Bigger, chunkier pills */
-    .quick-chip{
-      border-radius:999px;
-      border:1px solid #27272f;
-      background:#101014;
-      color:#e4e4e7;
-      padding:10px 0;      /* taller buttons */
-      font-size:13px;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .quick-chip:hover{
-      border-color:#3f3f46;
-    }
+/* Big, soft segment-style buttons */
+.quick-chip{
+  border-radius:24px;
+  border:1px solid #26262a;
+  background:#26262a;
+  color:#e4e4e7;
+  padding:12px 0;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.quick-chip:hover{
+  background:#323238;
+  border-color:#323238;
+}
 
-    .deadline-input{
-      border-radius:999px;
-      border:1px solid #27272f;
-      background:#101014;
-      color:#e4e4e7;
-      padding:10px 0;
-      font-size:13px;
-    }
+/* Custom minutes box styled to match the pills */
+.deadline-input{
+  border-radius:24px;
+  border:1px solid #26262a;
+  background:#101014;
+  color:#e4e4e7;
+  padding:12px 0;
+  font-size:13px;
+}
 
     .footer-note{
       font-size:11px;
@@ -594,6 +598,14 @@
     /* Join / Resolve buttons: 2 per row on phones */
   .quick-row{
     grid-template-columns:repeat(2, minmax(0, 1fr));
+      /* On phones: let deadline pills wrap into a 2x2 grid */
+  .quick-row{
+    flex-wrap:wrap;
+  }
+  .quick-row .quick-chip,
+  .quick-row .deadline-input{
+    flex:1 1 calc(50% - 8px);
+  }
   }
 
   /* NEW: make each chip a full-width row on mobile */
