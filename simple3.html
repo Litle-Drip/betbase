@@ -359,9 +359,11 @@
     
     /* Join / Resolve pills – match the clean ETH mock */
 .quick-row{
-  display:flex;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
   gap:10px;
   margin-top:10px;
+  width:100%;        /* ✅ forces full-row sizing */
 }
 
 .quick-row .quick-chip,
