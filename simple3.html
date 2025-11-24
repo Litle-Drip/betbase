@@ -556,13 +556,20 @@
   .stake-amount{font-size:34px;}
   .stake-label{font-size:13px;}
 }
-
     @media(max-width:640px){
       .app{padding:14px 12px 28px}
       .card{padding:16px}
       .subchips{flex-direction:column;align-items:flex-start}
-      .subchips .chip{width:100%;justify-content:center;}
       .summary-card{font-size:11px}
+      .top-actions{
+        display: flex;
+        gap: 10px;
+      }
+  /* contract pill — slightly smaller on phones */
+      .addr{
+        font-size:11px;
+        padding:6px 12px;
+      }
     }
     .top-actions {
       display: flex;
@@ -595,7 +602,7 @@
     <div id="addrPill" class="addr" title="Escrow contract address (locked)"></div>
     <div class="subchips">
       <div class="subchips-left">
-        <span class="chip badge">Base • Sepolia • (84532)</span>
+        <span id="chipNetwork" class="chip">Base • Sepolia • (84532)</span>
         <span class="chip badge">Fee 2.5%</span>
         <a class="chip" href="https://sepolia.basescan.org/address/0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433#code" target="_blank">
           Verified contract ↗
@@ -923,6 +930,8 @@ async function connect(){
     await provider.send('eth_requestAccounts',[]);
     signer = await provider.getSigner();
     $('sbState').textContent = 'Connected';
+    const netChip = d('chipNetwork');
+    if (netChip) netChip.classList.add('badge');
     $('sbState').classList.add('ok');
     $('btnConnect').classList.add('connected');
   }catch(e){
