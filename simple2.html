@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+<title>The Juice | Social Betting</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧃</text></svg>">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  
+  :root {
+    --bg-dark: #050505;
+    --bg-card: rgba(28, 28, 30, 0.7);
+    --bg-input: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.08);
+    
+    --text-main: #ffffff;
+    --text-muted: #86868b;
+    
+    --primary: #30d158; /* Neon Green */
+    --primary-glow: rgba(48, 209, 88, 0.3);
+    --danger: #ff453a;
+    --warning: #ffd60a;
+    
+    --radius-l: 24px;
+    --radius-m: 16px;
+    --radius-s: 10px;
+    
+    --anim: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  
+  body {
+    margin: 0;
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 0%, #1a221b 0%, #000000 70%);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px 16px;
+  }
+
+  /* --- Layout --- */
+  .app-shell {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    padding-bottom: 40px;
+  }
+
+  /* --- Header --- */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 4px;
+  }
+
+  .brand {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(to right, #fff, #bbb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-icon { font-size: 24px; -webkit-text-fill-color: initial; filter: drop-shadow(0 0 10px var(--primary-glow)); }
+
+  .wallet-btn {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s var(--anim);
+    backdrop-filter: blur(10px);
+  }
+  .wallet-btn:hover { background: rgba(255,255,255,0.1); }
+  .wallet-btn.connected { 
+    background: rgba(48, 209, 88, 0.15); 
+    border-color: rgba(48, 209, 88, 0.3); 
+    color: var(--primary); 
+    box-shadow: 0 0 15px var(--primary-glow);
+  }
+
+  /* --- Tabs --- */
+  .tabs {
+    display: flex;
+    background: #151516;
+    padding: 4px;
+    border-radius: 18px;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.3s var(--anim);
+    position: relative;
+    z-index: 2;
+  }
+  .tab-btn.active {
+    color: #fff;
+    background: var(--bg-card);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+  }
+
+  /* --- Cards --- */
+  .card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    padding: 24px;
+    display: none;
+    animation: slideUp 0.4s var(--anim);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+  }
+  .card.visible { display: block; }
+
+  @keyframes slideUp { 
+    from { opacity: 0; transform: translateY(15px) scale(0.98); } 
+    to { opacity: 1; transform: translateY(0) scale(1); } 
+  }
+
+  /* --- Typography Utilities --- */
+  .label { 
+    display: block; 
+    font-size: 12px; 
+    color: var(--text-muted); 
+    margin-bottom: 10px; 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+  }
+  .text-center { text-align: center; }
+  .muted { color: var(--text-muted); font-size: 13px; }
+
+  /* --- Big Input Area --- */
+  .amount-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0 30px 0;
+    position: relative;
+  }
+
+  .big-input-wrapper {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .currency-symbol {
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transform: translateY(-4px);
+  }
+
+  .big-input {
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: #fff;
+    width: 200px;
+    text-align: center;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    font-feature-settings: "tnum"; /* Tabular numbers */
+    text-shadow: 0 0 30px rgba(255,255,255,0.1);
+  }
+  .big-input::placeholder { color: rgba(255,255,255,0.1); }
+
+  .currency-toggle-group {
+    display: flex;
+    background: var(--bg-input);
+    padding: 2px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+  .currency-pill {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .currency-pill.active { background: #3a3a3c; color: #fff; }
+
+  /* --- Segmented Controls --- */
+  .segment-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 2px; /* For scrollbar hiding */
+  }
+  .segment-group::-webkit-scrollbar { display: none; }
+  
+  .segment-btn {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    padding: 12px;
+    border-radius: var(--radius-m);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+  .segment-btn:hover { background: rgba(255,255,255,0.1); }
+  .segment-btn:focus, .segment-btn.selected { 
+    background: rgba(255,255,255,0.1); 
+    border-color: rgba(255,255,255,0.2); 
+    color: #fff; 
+  }
+  
+  input.segment-btn { 
+    width: 70px; 
+    text-align: center; 
+    color: #fff; 
+    outline: none;
+  }
+  input.segment-btn:focus { border-color: var(--primary); }
+
+  /* --- Buttons --- */
+  .btn-main {
+    width: 100%;
+    padding: 18px;
+    border-radius: var(--radius-m);
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-main:active { transform: scale(0.97); }
+  
+  .btn-primary { 
+    background: var(--primary); 
+    color: #000; 
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+  .btn-primary:hover { box-shadow: 0 0 30px var(--primary-glow); }
+
+  .btn-secondary { 
+    background: var(--bg-input); 
+    color: var(--text-main); 
+    border: 1px solid var(--border);
+  }
+  .btn-ghost { background: transparent; color: var(--text-muted); border:none; padding:12px; cursor:pointer; font-size:13px; width:100%;}
+  .btn-ghost:hover { color: var(--text-main); }
+
+  /* --- Idea Box --- */
+  .idea-box {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: var(--radius-m);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .idea-text { 
+    font-size: 15px; 
+    font-weight: 500; 
+    font-style: italic; 
+    color: #e0e0e0; 
+    line-height: 1.4;
+  }
+
+  /* --- Voting Grid --- */
+  .vote-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .vote-col { display: flex; flex-direction: column; gap: 8px; }
+  .btn-vote { 
+    padding: 14px; 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    background: rgba(255,255,255,0.03); 
+    color: var(--text-muted); 
+    font-weight: 600;
+    cursor: pointer; 
+    transition: 0.2s;
+  }
+  .btn-vote:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .btn-vote.active { border-color: var(--primary); background: rgba(48,209,88,0.1); color: var(--primary); }
+
+  /* --- Status & Alerts --- */
+  .status-pill {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 214, 10, 0.1);
+    border: 1px solid rgba(255, 214, 10, 0.2);
+    color: var(--warning);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .status-pill.success { 
+    background: rgba(48, 209, 88, 0.1); 
+    border-color: rgba(48, 209, 88, 0.2);
+    color: var(--primary); 
+  }
+  .status-pill.error {
+    background: rgba(255, 69, 58, 0.1);
+    border-color: rgba(255, 69, 58, 0.2);
+    color: var(--danger);
+  }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:translateY(0)} }
+
+  /* --- QR & Share --- */
+  #shareSection { text-align: center; margin-bottom: 24px; display: none; }
+  #qrBox {
+    background: #fff;
+    padding: 12px;
+    border-radius: 16px;
+    width: fit-content;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .share-input-wrap {
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 4px 4px 4px 12px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+  }
+  #shareUrl {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+  }
+
+  /* --- Footer Stats --- */
+  .info-stack {
+    padding: 20px;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--radius-l);
+    border: 1px solid var(--border);
+  }
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;}
+  .info-row span:first-child { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .info-val { color: #fff; font-weight: 700; font-family: 'SF Mono', 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+  .network-pill { 
+    font-size: 10px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    color: var(--text-muted); 
+    margin-top: 16px; 
+    text-align: center; 
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Utilities */
+  .hidden { display: none !important; }
+  .row { display: flex; gap: 8px; align-items: center; }
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+</head>
+
+<body>
+
+<div class="app-shell">
+  
+  <div class="header">
+    <div class="brand"><span class="brand-icon">🧃</span> The Juice</div>
+    <button id="btnConnect" class="wallet-btn">Connect Wallet</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('create')">Create Bet</button>
+    <button class="tab-btn" onclick="switchTab('manage')">Join & Resolve</button>
+  </div>
+
+  <div id="tab-create" class="card visible">
+    
+    <div class="idea-box">
+      <div>
+        <div style="font-size:11px; color:var(--primary); font-weight:700; margin-bottom:4px; text-transform:uppercase;">Bet Idea</div>
+        <span id="ideaBoxText" class="idea-text">"Make a 3-point shot..."</span>
+        <input id="ideaBox" type="hidden" value=""/> 
+      </div>
+      <button id="btnShuffle" style="background:none; border:none; cursor:pointer; font-size:20px; opacity:0.8; transition:transform 0.2s">🎲</button>
+    </div>
+
+    <div class="amount-area">
+      <div class="big-input-wrapper">
+        <span id="currencySymbol" class="currency-symbol">Ξ</span>
+        <input id="stakeMain" class="big-input" type="number" step="0.0001" value="0.0014" placeholder="0.00" />
+      </div>
+      <div class="currency-toggle-group">
+        <button id="stakeModeEth" class="currency-pill active">ETH</button>
+        <button id="stakeModeUsd" class="currency-pill">USD</button>
+      </div>
+    </div>
+
+    <div class="segment-group">
+      <button class="segment-btn" id="usd1">$1</button>
+      <button class="segment-btn" id="usd5">$5</button>
+      <button class="segment-btn" id="usd20">$20</button>
+      <button class="segment-btn" id="usd50">$50</button>
+    </div>
+
+    <div class="label">Join Deadline</div>
+    <div class="segment-group">
+      <button class="segment-btn" onclick="setJoin(15)">15m</button>
+      <button class="segment-btn" onclick="setJoin(60)">1h</button>
+      <button class="segment-btn" onclick="setJoin(1440)">24h</button>
+      <input id="joinMins" type="number" class="segment-btn" value="15" placeholder="min">
+    </div>
+
+    <div class="label">Resolve Deadline</div>
+    <div class="segment-group">
+      <button class="segment-btn" onclick="setResolve(30)">+30m</button>
+      <button class="segment-btn" onclick="setResolve(120)">+2h</button>
+      <button class="segment-btn" onclick="setResolve(2880)">+2 Days</button>
+      <input id="resolveMins" type="number" class="segment-btn" value="30" placeholder="min">
+    </div>
+
+    <input id="stakeEth" type="hidden" value="0.0014"/>
+    <input id="stakeUsd" type="hidden" value="5"/>
+    <input id="feeBps" type="hidden" value="250"/>
+
+    <button id="btnCreate" class="btn-main btn-primary">Create & Fund Bet</button>
+    <div id="createStatus" class="status-pill"></div>
+    
+    <button id="btnReset" class="hidden"></button> 
+    <button id="ethMinus" class="hidden"></button>
+    <button id="ethPlus" class="hidden"></button>
+  </div>
+
+  <div id="tab-manage" class="card">
+    <div class="label">Enter Bet ID</div>
+    <div class="row" style="margin-bottom:24px;">
+      <input id="betId" class="segment-btn" style="text-align:left; flex:1; background:var(--bg-input); color:#fff; cursor:text; padding:16px;" placeholder="Paste ID here..." />
+      <button id="btnNewBet" class="segment-btn" style="flex:0;">New</button>
+    </div>
+
+    <div id="shareSection">
+      <div id="qrBox"></div>
+      <div class="share-input-wrap">
+        <span style="font-size:14px; margin-right:8px;">🔗</span>
+        <input id="shareUrl" readonly />
+        <button id="btnCopy" class="btn-ghost" style="width:auto; padding:8px; font-weight:700; color:var(--primary)">Copy</button>
+      </div>
+      <div id="newBetNote" class="muted" style="margin-top:12px; color:var(--primary)">Bet Created! Send this to your friend.</div>
+    </div>
+
+    <button id="btnJoin" class="btn-main btn-primary">Join This Bet</button>
+    <button id="btnRefund" class="btn-main btn-secondary">Request Refund</button>
+
+    <div style="height:1px; background:var(--border); margin: 30px 0;"></div>
+
+    <div class="text-center" style="margin-bottom:20px;">
+      <div style="font-size:16px; font-weight:700; color:#fff">Who Won?</div>
+      <p class="muted">Both parties must agree to release funds.</p>
+    </div>
+
+    <div class="vote-grid">
+      <div class="vote-col">
+        <div class="label text-center" style="margin-bottom:4px">I created this</div>
+        <button id="creatorWon" class="btn-vote">I Won</button>
+        <button id="creatorSaysOpponent" class="btn-vote">Opponent Won</button>
+      </div>
+      <div class="vote-col">
+        <div class="label text-center" style="margin-bottom:4px">I joined this</div>
+        <button id="opponentSaysCreator" class="btn-vote">Creator Won</button>
+        <button id="opponentWon" class="btn-vote">I Won</button>
+      </div>
+    </div>
+
+    <button id="btnPayout" class="btn-main btn-primary" style="margin-top:24px; background: #fff; color:#000;">Finalize & Payout</button>
+    <div id="actionStatus" class="status-pill"></div>
+  </div>
+
+  <div class="info-stack">
+    <div class="info-row">
+      <span>Total Pot</span>
+      <span class="info-val"><span id="sbPotEth">0.0028</span> ETH <span style="opacity:0.5; font-weight:400">(<span id="sbPotUsd">$10.00</span>)</span></span>
+    </div>
+    <div class="info-row">
+      <span>Winner Net</span>
+      <span class="info-val" style="color:var(--primary)"><span id="sbWinEth">0.0027</span> ETH <span style="opacity:0.5; font-weight:400">(<span id="sbWinUsd">$9.75</span>)</span></span>
+    </div>
+    <div class="network-pill">
+      Base Sepolia • Platform Fee 2.5% • <a id="lastTx" href="#" target="_blank" style="color:var(--text-muted); text-decoration:underline">View TX</a>
+    </div>
+    
+    <div id="sbState" class="hidden"></div>
+    <div id="addrPill" class="hidden"></div>
+    <div id="btnSwitch" class="hidden"></div> 
+  </div>
+
+</div>
+
+<script>
+/* -------------------------------------------------------------------------- */
+/* UI LOGIC                                                                   */
+/* -------------------------------------------------------------------------- */
+
+function switchTab(tab) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('visible'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+  if(tab === 'create') {
+    document.getElementById('tab-create').classList.add('visible');
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  } else {
+    document.getElementById('tab-manage').classList.add('visible');
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  }
+}
+
+function setJoin(m) { document.getElementById('joinMins').value = m; }
+function setResolve(m) { document.getElementById('resolveMins').value = m; }
+
+// Animation helper for shuffle
+document.getElementById('btnShuffle').addEventListener('click', function() {
+    this.style.transform = 'rotate(180deg)';
+    setTimeout(() => this.style.transform = 'rotate(0deg)', 200);
+});
+
+/* -------------------------------------------------------------------------- */
+/* CORE APP LOGIC (Preserved)                                                */
+/* -------------------------------------------------------------------------- */
+
+const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'https://sepolia.basescan.org' };
+const FEE_BPS = 250;        
+let   ETH_USD = 3500;       
+const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433'; 
+
+const $ = id => document.getElementById(id);
+const fmtUsd = v => '$' + v.toFixed(2);
+
+function currentShareUrl() {
+  const betId = $('betId').value;
+  try {
+    const u = new URL(location.href);
+    if (betId) u.searchParams.set('bet', betId);
+    else u.searchParams.delete('bet');
+    return u.toString();
+  } catch { return location.href; }
+}
+
+let qr = null;
+function renderQR() {
+  const node = $('qrBox'); node.innerHTML = '';
+  const val = $('betId').value;
+  
+  if(val && val.length > 0) {
+    $('shareSection').style.display = 'block';
+    qr = new QRCode(node, { text: currentShareUrl(), width: 128, height: 128, colorDark:'#000000', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  } else {
+    $('shareSection').style.display = 'none';
+  }
+}
+
+/* Preview Updates */
+function updatePreview() {
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+  const pot = eth * 2;
+  const win = pot * (1 - FEE_BPS / 10000);
+
+  if($('sbPotEth')) $('sbPotEth').textContent = pot.toFixed(4);
+  if($('sbPotUsd')) $('sbPotUsd').textContent = fmtUsd(pot * ETH_USD);
+  if($('sbWinEth')) $('sbWinEth').textContent = win.toFixed(4);
+  if($('sbWinUsd')) $('sbWinUsd').textContent = fmtUsd(win * ETH_USD);
+}
+
+/* Stake Logic */
+let stakeMode = 'ETH'; 
+
+function applyStakeFromEth(rawEth) {
+  const eth = Math.max(0, Number(rawEth) || 0);
+  $('stakeEth').value = eth.toFixed(4);
+  $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
+  updatePreview();
+}
+
+function handleStakeMainInput() {
+  const num = Number($('stakeMain').value) || 0;
+  if (stakeMode === 'ETH') {
+    applyStakeFromEth(num);
+  } else {
+    const eth = num / ETH_USD;
+    applyStakeFromEth(eth);
+  }
+}
+
+function setStakeMode(mode) {
+  if (mode !== 'ETH' && mode !== 'USD') return;
+  stakeMode = mode;
+  
+  // UI Toggle
+  $('currencySymbol').textContent = mode === 'ETH' ? 'Ξ' : '$';
+  if(mode === 'ETH') {
+      $('stakeModeEth').classList.add('active');
+      $('stakeModeUsd').classList.remove('active');
+  } else {
+      $('stakeModeEth').classList.remove('active');
+      $('stakeModeUsd').classList.add('active');
+  }
+
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+  const input = $('stakeMain');
+  
+  if (mode === 'ETH') {
+    input.step = '0.0001';
+    input.value = eth.toFixed(4);
+  } else {
+    input.step = '1';
+    input.value = (eth * ETH_USD).toFixed(0);
+  }
+}
+
+/* Ethers & Contract */
+let provider, signer;
+const ABI = [
+  {type:'function',stateMutability:'payable',   name:'createBet',   inputs:[{name:'stakeWei',type:'uint256'},{name:'feeBps',type:'uint16'},{name:'joinWindowSeconds',type:'uint64'},{name:'resolveWindowSeconds',type:'uint64'}], outputs:[{name:'betId',type:'uint256'}]},
+  {type:'function',stateMutability:'payable',   name:'joinBet',     inputs:[{name:'betId',type:'uint256'}], outputs:[]},
+  {type:'function',stateMutability:'nonpayable',name:'confirmWinner',inputs:[{name:'betId',type:'uint256'},{name:'creatorWon',type:'bool'}], outputs:[]},
+  {type:'function',stateMutability:'nonpayable',name:'refund',      inputs:[{name:'betId',type:'uint256'}], outputs:[]},
+  {type:'function',stateMutability:'nonpayable',name:'resolve',     inputs:[{name:'betId',type:'uint256'}], outputs:[]},
+  {type:'function',stateMutability:'view',      name:'getBet',      inputs:[{name:'betId',type:'uint256'}], outputs:[{type:'address'},{type:'address'},{type:'uint256'},{type:'uint16'},{type:'uint64'},{type:'uint64'},{type:'uint64'},{type:'uint8'},{type:'int8'},{type:'int8'}]},
+  {type:'function',stateMutability:'view',      name:'nextBetId',   inputs:[], outputs:[{type:'uint256'}]}
+];
+
+async function ensureBase(){
+  if (!window.ethereum) { alert('MetaMask not found'); throw new Error('no wallet'); }
+  const chain = await window.ethereum.request({ method:'eth_chainId' });
+  if (chain !== BASE.idHex){
+    try{
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE.idHex }] });
+    }catch(e){
+      if (e.code === 4902){
+        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: BASE.idHex, chainName:'Base Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer]}] });
+      } else { throw e; }
+    }
+  }
+}
+
+async function connect(){
+  try{
+    await ensureBase();
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send('eth_requestAccounts',[]);
+    signer = await provider.getSigner();
+    const btn = $('btnConnect');
+    btn.textContent = 'Connected';
+    btn.classList.add('connected');
+  }catch(e){
+    console.error(e);
+  }
+}
+function getContract(){
+  if (!signer) throw new Error('Connect your wallet first.');
+  return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+}
+
+/* Actions & Feedback */
+function showStatus(elId, msg, isError=false) {
+    const el = $(elId);
+    el.style.display = 'block';
+    el.textContent = msg;
+    
+    // Reset Classes
+    el.classList.remove('success');
+    el.classList.remove('error');
+
+    if(isError) el.classList.add('error');
+    else if(msg.includes('✅')) el.classList.add('success');
+}
+
+async function doCreate(){
+  showStatus('createStatus', 'Confirm in wallet...');
+  try{
+    if (!signer) await connect();
+    const c = getContract();
+    const stakeEth = String($('stakeEth').value || '0');
+
+    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
+    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
+    
+    const stakeWei = ethers.parseEther(stakeEth);
+
+    const tx = await c.createBet(stakeWei, FEE_BPS, BigInt(jm * 60), BigInt(rm * 60), { value: stakeWei });
+    showStatus('createStatus', 'Transaction Pending...');
+
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    
+    const nextId = await c.nextBetId();
+    const betId  = (BigInt(nextId) - 1n).toString();
+    
+    $('betId').value = betId;
+    $('shareUrl').value = currentShareUrl();
+    renderQR();
+    switchTab('manage'); // Auto switch
+    showStatus('actionStatus', '✅ Bet Created! Share it now.');
+    $('createStatus').style.display = 'none'; 
+
+  }catch(e){
+    showStatus('createStatus', (e?.shortMessage||e?.message||e), true);
+  }
+}
+  
+async function doJoin(){
+  showStatus('actionStatus', 'Confirm in wallet...');
+  try{
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const b = await c.getBet(betId);
+    const stakeWei = b[2];
+    const tx = await c.joinBet(betId, { value: stakeWei });
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    showStatus('actionStatus', '✅ You have joined the bet.');
+  }catch(e){
+    showStatus('actionStatus', (e?.shortMessage||e?.message||e), true);
+  }
+}
+
+async function doVote(creatorWon){
+  showStatus('actionStatus', 'Sending vote...');
+  try{
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const tx = await c.confirmWinner(betId, Boolean(creatorWon));
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    showStatus('actionStatus', '✅ Vote submitted.');
+  }catch(e){
+    showStatus('actionStatus', (e?.shortMessage||e?.message||e), true);
+  }
+}
+
+async function doRefund(){
+  showStatus('actionStatus', 'Requesting refund...');
+  try{
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const tx = await c.refund(betId);
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    showStatus('actionStatus', '✅ Refund processed.');
+  }catch(e){
+    showStatus('actionStatus', (e?.shortMessage||e?.message||e), true);
+  }
+}
+
+async function doPayout(){
+  showStatus('actionStatus', 'Finalizing...');
+  try{
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = BigInt(String($('betId').value||'0'));
+    const tx = await c.resolve(betId);
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    showStatus('actionStatus', '✅ Payout Complete!');
+  }catch(e){
+    showStatus('actionStatus', (e?.shortMessage||e?.message||e), true);
+  }
+}
+
+/* Ideas & Utilities */
+const IDEAS = [
+  "Make a 3-point shot from top of key",
+  "Darts: Hit a double in 3 throws",
+  "Chug beer under 1 minute",
+  "Hit the crossbar (Soccer)",
+  "Bottle Flip: 3 out of 5",
+  "Golf: Hole in one!",
+  "Pool: Bank shot within 2 tries",
+  "Ping pong: Serve an ace",
+  "Guess the coin flip outcome"
+];
+function shuffleIdea(){
+  const txt = IDEAS[Math.floor(Math.random()*IDEAS.length)];
+  $('ideaBoxText').textContent = `"${txt}"`;
+  $('ideaBox').value = txt;
+}
+
+function genBetId(){ return String(Math.floor(10_000_000 + Math.random()*90_000_000)); }
+function startNewBet(){
+  const id = genBetId();
+  $('betId').value = id;
+  $('shareUrl').value = currentShareUrl();
+  renderQR();
+}
+
+/* Init */
+window.addEventListener('DOMContentLoaded', ()=>{
+  setStakeMode('ETH');
+  applyStakeFromEth($('stakeEth').value || '0');
+
+  $('stakeMain').addEventListener('input', handleStakeMainInput);
+  $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
+  $('stakeModeUsd').onclick = ()=> setStakeMode('USD');
+
+  $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
+  $('usd5').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 5;  handleStakeMainInput(); };
+  $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
+  $('usd50').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 50; handleStakeMainInput(); };
+
+  $('betId').addEventListener('input', ()=>{ $('shareUrl').value = currentShareUrl(); renderQR(); });
+  $('btnCopy').onclick = async ()=>{ 
+    try{ 
+        await navigator.clipboard.writeText($('shareUrl').value); 
+        const oldText = $('btnCopy').textContent;
+        $('btnCopy').textContent='Copied!'; 
+        setTimeout(()=>$('btnCopy').textContent=oldText, 1500); 
+    }catch{} 
+  };
+
+  $('btnConnect').onclick = connect;
+  $('btnCreate').onclick = doCreate;
+  $('btnJoin').onclick   = doJoin;
+  $('btnRefund').onclick = doRefund;
+  
+  $('creatorWon').onclick= ()=>doVote(true);
+  $('creatorSaysOpponent').onclick= ()=>doVote(false);
+  $('opponentSaysCreator').onclick= ()=>doVote(true);
+  $('opponentWon').onclick= ()=>doVote(false);
+  $('btnPayout').onclick = doPayout;
+
+  $('btnShuffle').onclick = shuffleIdea;
+  $('btnNewBet').onclick = startNewBet;
+
+  // Load from URL
+  const p = new URLSearchParams(location.search); 
+  const b = p.get('bet'); 
+  if (b){ 
+      $('betId').value=b; 
+      $('shareUrl').value=currentShareUrl(); 
+      renderQR(); 
+      switchTab('manage'); 
+  }
+});
+</script>
+</body>
+</html>
