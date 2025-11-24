@@ -356,29 +356,28 @@
       color:var(--accent);
     }
 
+    /* Join / Resolve quick buttons – 4 even pills per row */
     .quick-row{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:space-between;  /* 👈 spreads buttons evenly */
-      gap:12px;                       /* 👈 slightly roomier spacing */
-      margin-top:8px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:10px;
+      margin-top:10px;
     }
 
-    /* Make the 3 quick chips + custom input look like 4 equal boxes */
     .quick-row .quick-chip,
     .quick-row .deadline-input{
-      flex:1;
-      min-width:0;
+      width:100%;          /* fill their grid cell */
       text-align:center;
     }
 
+    /* Bigger, chunkier pills */
     .quick-chip{
       border-radius:999px;
       border:1px solid #27272f;
       background:#101014;
       color:#e4e4e7;
-      padding:6px 12px;
-      font-size:12px;
+      padding:10px 0;      /* taller buttons */
+      font-size:13px;
       cursor:pointer;
       white-space:nowrap;
     }
@@ -387,9 +386,13 @@
     }
 
     .deadline-input{
-      max-width:none; /* let flex sizing control the width */
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      color:#e4e4e7;
+      padding:10px 0;
+      font-size:13px;
     }
-
 
     .footer-note{
       font-size:11px;
@@ -588,6 +591,10 @@
   .app{padding:14px 12px 28px}
   .card{padding:16px}
   .subchips{flex-direction:column;align-items:flex-start}
+    /* Join / Resolve buttons: 2 per row on phones */
+  .quick-row{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
 
   /* NEW: make each chip a full-width row on mobile */
   .subchips .chip{
