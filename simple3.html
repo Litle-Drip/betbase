@@ -146,7 +146,12 @@
       color:inherit;
       text-decoration:none;
     }
-
+/* View Contract click flash */
+    .chip:active {
+      background: var(--accent);
+      color: var(--accent-ink);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
     .subbar{
   display:flex;
   flex-direction:column;
@@ -159,7 +164,7 @@
     }
     .addr{
       border-radius:999px;
-      border:1px solid var(--border);
+      border:1px solid var(--accent);
       background:#0b0b10;
       padding:8px 18px;
       margin-bottom:10px;   /* 👈 add this */
@@ -589,7 +594,7 @@
     <div class="subchips">
       <div class="subchips-left">
         <span class="chip badge">Base • Sepolia • (84532)</span>
-        <span class="chip">Fee 2.5%</span>
+        <span class="chip badge">Fee 2.5%</span>
         <a class="chip" href="https://sepolia.basescan.org/address/0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433#code" target="_blank">
           Verified contract ↗
         </a>
