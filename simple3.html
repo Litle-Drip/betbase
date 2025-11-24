@@ -308,15 +308,22 @@
       justify-content:center;
       gap:14px;
       margin-bottom:10px;
+      /* Bigger preset + / - buttons inside Create Bet */
+    .stake-main .btn.small{
+      padding:10px 24px;   /* taller & wider */
+      font-size:15px;      /* bigger text */
+      font-weight:600;     /* a bit bolder */
+      min-width:88px;      /* gives each button a nice pill shape */
+      justify-content:center;
     }
     .stake-symbol{
       font-size:20px;
       color:var(--muted);
     }
     .stake-amount{
-      font-size:34px;
+      font-size:40px;
       font-weight:700;
-      min-width:100px;
+      min-width:110px;
       text-align:center;
       border:none;
       outline:none;
@@ -357,8 +364,9 @@
       border:1px solid #27272f;
       background:#101014;
       color:#e4e4e7;
-      padding:6px 12px;
-      font-size:12px;
+      padding:10px 22px;   /* was 6px 12px */
+      font-size:15px;      /* was 12px */
+      font-weight:600;
       cursor:pointer;
       white-space:nowrap;
     }
@@ -575,7 +583,10 @@
     text-align: center;
     margin-bottom:6px; /* optional */
   }
-
+  .quick-chip{
+    width:100%;
+    text-align:center;
+  }
   .summary-card{font-size:11px}
   .top-actions{
     display: flex;
