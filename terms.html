@@ -7,6 +7,23 @@
 <title>Document</title>
 
 <style>
+/* Auto-fit text inside cards/containers */
+.card, .content, .container, .doc-card {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Prevent text from overflowing horizontally */
+body {
+    overflow-x: hidden;
+}
+
+/* Make long lines pull inward for better readability */
+p, li {
+    max-width: 100%;
+    line-height: 1.45;
+}
     body {
         background-color: #0d0d0d;        /* Juice dark background */
         color: #e2e8f0;                   /* light gray text */
