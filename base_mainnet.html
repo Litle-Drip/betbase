@@ -738,6 +738,32 @@
   background:#26262b;
   border-color:#323238;
 }
+    /* -------- Site footer / legal links -------- */
+    .site-footer{
+      max-width:960px;
+      margin:18px auto 0;
+      padding:14px 20px 26px;
+      border-top:1px solid #27272f;
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .site-footer nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .site-footer a{
+      color:var(--muted);
+      text-decoration:none;
+    }
+    .site-footer a:hover{
+      text-decoration:underline;
+    }
 
   </style>
 
@@ -969,6 +995,17 @@
   </div>
 </div>
 
+  <footer class="site-footer">
+    <span>© 2025 Juice Labs LLC • Experimental software. Use at your own risk.</span>
+    <nav>
+      <a href="about.html">About</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="risk.html">Risk Disclosure</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+  </footer>
+  
 <!-- Logic -->
 <script>
 /* ---------- Config ---------- */
