@@ -7,40 +7,45 @@
 <title>Document</title>
 
 <style>
-/* Auto-fit text inside cards/containers */
-.card,
-.container,
-.doc-container {
-    width: 100%;
-    max-width: 800px;
-    margin: auto;
-    padding: 40px 20px;
+  /* Page background + centering */
+  body {
+    margin: 0;
+    padding: 32px 12px;
+    background-color: #000000;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #e8f0ff;
+    display: flex;
+    justify-content: center;
     box-sizing: border-box;
+  }
 
-    /* Prevent overflow */
+  /* Outer wrapper so card shrinks on mobile */
+  .doc-container {
+    width: 100%;
+    max-width: 900px;
+  }
+
+  /* The actual card */
+  .doc-card {
+    background-color: #101010;      /* dark gray, matches Juice */
+    border-radius: 16px;
+    padding: 32px 24px;
+    box-shadow: 0 0 40px rgba(0, 172, 255, 0.25); /* neon blue glow */
+    box-sizing: border-box;
     overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-}
+  }
 
-/* Prevent horizontal scroll EVER */
-body, html {
-    max-width: 100%;
-    overflow-x: hidden;
-}
+  /* Text tweaks */
+  h1, h2, h3 {
+    color: #44ccff;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
 
-/* Make large text shrink slightly on smaller screens */
-@media (max-width: 480px) {
-    .doc-container {
-        font-size: 15px;
-        line-height: 1.55;
-        padding: 32px 16px;
-    }
-
-    h1, h2, h3 {
-        word-break: break-word;
-    }
-}
+  p, li {
+    line-height: 1.6;
+    font-size: 14px;
+  }
     body {
         background-color: #0d0d0d;        /* Juice dark background */
         color: #e2e8f0;                   /* light gray text */
@@ -98,8 +103,8 @@ body, html {
 </head>
 
 <body>
-<div class="doc-container">
-
+    <div class="doc-container">
+        <div class="doc-card">
 <pre>
   Last updated: 11/25/2025
 
@@ -187,6 +192,8 @@ These Terms are governed by the laws of the State of Illinois, without regard to
 If you have questions about these Terms, you may contact us at:
 arrakeensubstack@gmail.com
 </pre>
-</div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
