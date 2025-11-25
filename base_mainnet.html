@@ -590,7 +590,7 @@
       font-size:11px;
       color:#71717a;
       margin-top:4px;
-      text-align:left;
+      text-align:center;
     }
 
     /* Special buttons */
@@ -1017,7 +1017,7 @@
   <div class="summary-card">
     <div class="summary-top">
       <div id="sbState" class="state-pill">Not connected</div>
-      <div class="chip">Base Sepolia</div>
+      <div class="chip">Base • Mainnet • (8453)</div>
     </div>
 
     <div class="summary-row">
@@ -1299,9 +1299,10 @@ async function ensureBase(){
       if (e.code === 4902){
         await window.ethereum.request({
           method:'wallet_addEthereumChain',
-          params:[{ chainId: BASE.idHex, chainName:'Base Sepolia',
+          params:[{ chainId: BASE.idHex, chainName:'Base Mainnet',
                     nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18},
                     rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer]}]
+
         });
       }else{ throw e; }
     }
