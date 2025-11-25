@@ -1360,16 +1360,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   setStakeMode('USD');
   $('stakeMain').addEventListener('input', handleStakeMainInput);
 
-window.addEventListener('DOMContentLoaded', ()=>{
-  // stake defaults (start from ETH value, show USD)
-  applyStakeFromEth(0.0014);
-  setStakeMode('USD');
-  $('stakeMain').addEventListener('input', handleStakeMainInput);
-
   // Try to refresh ETH/USD preview rate
   refreshEthUsd();
-  ...
-});
 
   // Mode toggle
   $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
@@ -1418,22 +1410,22 @@ window.addEventListener('DOMContentLoaded', ()=>{
   };
 
   // Connect / switch / new bet
-$('btnConnect').onclick = connect;
-$('btnSwitch').onclick = async ()=>{
-  try{
-    await ensureBase();
-    $('btnSwitch').classList.add('connected');
-  }catch{}
-};
-
-const newBetBtn = $('btnNewBet');
-if (newBetBtn) {
-  newBetBtn.onclick = () => {
-    startNewBet();
-    newBetBtn.classList.add('connected');
+  $('btnConnect').onclick = connect;
+  $('btnSwitch').onclick = async ()=>{
+    try{
+      await ensureBase();
+      $('btnSwitch').classList.add('connected');
+    }catch{}
   };
-}
-  
+
+  const newBetBtn = $('btnNewBet');
+  if (newBetBtn) {
+    newBetBtn.onclick = () => {
+      startNewBet();
+      newBetBtn.classList.add('connected');
+    };
+  }
+
   // Actions
   $('btnCreate').onclick = doCreate;
   $('btnReset').onclick  = ()=>{
@@ -1460,10 +1452,11 @@ if (newBetBtn) {
   };
 
   // Tabs
-  const tabCreate = $('tabCreate');
-  const tabJoin   = $('tabJoin');
+  const tabCreate   = $('tabCreate');
+  const tabJoin     = $('tabJoin');
   const panelCreate = $('panelCreate');
   const panelJoin   = $('panelJoin');
+
   tabCreate.onclick = ()=>{
     tabCreate.classList.add('active');
     tabJoin.classList.remove('active');
