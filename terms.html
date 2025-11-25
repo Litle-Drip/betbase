@@ -8,21 +8,38 @@
 
 <style>
 /* Auto-fit text inside cards/containers */
-.card, .content, .container, .doc-card {
-    word-wrap: break-word;
+.card,
+.container,
+.doc-container {
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+    padding: 40px 20px;
+    box-sizing: border-box;
+
+    /* Prevent overflow */
     overflow-wrap: break-word;
+    word-wrap: break-word;
     hyphens: auto;
 }
 
-/* Prevent text from overflowing horizontally */
-body {
+/* Prevent horizontal scroll EVER */
+body, html {
+    max-width: 100%;
     overflow-x: hidden;
 }
 
-/* Make long lines pull inward for better readability */
-p, li {
-    max-width: 100%;
-    line-height: 1.45;
+/* Make large text shrink slightly on smaller screens */
+@media (max-width: 480px) {
+    .doc-container {
+        font-size: 15px;
+        line-height: 1.55;
+        padding: 32px 16px;
+    }
+
+    h1, h2, h3 {
+        word-break: break-word;
+    }
 }
     body {
         background-color: #0d0d0d;        /* Juice dark background */
