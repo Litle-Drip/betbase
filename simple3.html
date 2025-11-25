@@ -1010,19 +1010,32 @@ $('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS}`;
 
 /* ---------- QR + share helpers ---------- */
 function currentShareUrl() {
-  const betId = $('betId').value;
+  const betIdRaw = String(($('betId')?.value || '')).trim();
+  const ideaRaw  = String(($('ideaBox')?.value || '')).trim();
+
   try{
     const u = new URL(location.href);
-    if (betId) {
-      u.searchParams.set('bet', betId);
+
+    // Only include bet= if the ID is a pure number
+    if (/^\d+$/.test(betIdRaw)) {
+      u.searchParams.set('bet', betIdRaw);
     } else {
       u.searchParams.delete('bet');
     }
+
+    // Include idea text for context (off-chain only)
+    if (ideaRaw) {
+      u.searchParams.set('idea', ideaRaw);
+    } else {
+      u.searchParams.delete('idea');
+    }
+
     return u.toString();
   }catch{
     return location.href;
   }
 }
+
 let qr = null;
 function renderQR(){
   const node = $('qrBox');
@@ -1079,7 +1092,17 @@ function applyStakeFromEth(rawEth){
 let stakeMode = 'USD'; // default: show USD in big box
 
 function handleStakeMainInput(){
-  const num = Number($('stakeMain').value) || 0;
+  const raw = String($('stakeMain').value || '').trim();
+  const num = Number(raw);
+
+  // If user cleared the box or typed junk, just zero out preview and bail
+  if (!Number.isFinite(num) || num <= 0){
+    $('stakeEth').value = '0';
+    $('stakeUsd').value = '0';
+    updatePreview();
+    return;
+  }
+
   if (stakeMode === 'ETH'){
     applyStakeFromEth(num);
   }else{
@@ -1173,18 +1196,28 @@ async function doCreate(){
     await ensureBase();
     if (!signer) await connect();
     const c = getContract();
-    const stakeEth = String($('stakeEth').value || '0');
 
-    if (Number(stakeEth) <= 0){
+    const stakeEthStr = String($('stakeEth').value || '0');
+    const stakeEthNum = Number(stakeEthStr);
+
+    if (!Number.isFinite(stakeEthNum) || stakeEthNum <= 0){
       throw new Error('Stake must be greater than zero.');
     }
 
-    const jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
-    const rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
-    $('joinMins').value = jm;
+    // Clamp inputs to allowed ranges
+    let jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
+    let rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
+
+    // Enforce resolve > join to match contract expectations
+    if (rm <= jm){
+      throw new Error('Resolve deadline must be greater than join deadline.');
+    }
+
+    $('joinMins').value    = jm;
     $('resolveMins').value = rm;
 
-    const stakeWei = ethers.parseEther(stakeEth);
+    const stakeWei = ethers.parseEther(stakeEthNum.toFixed(4));
+
     const tx = await c.createBet(
       stakeWei,
       FEE_BPS,
@@ -1225,6 +1258,19 @@ async function doJoin(){
     }
     if (b[1] !== ethers.ZeroAddress){
       $('actionStatus').textContent = '❌ Bet already has an opponent';
+      return;
+    }
+
+    const state = Number(b[7]);      // 0 = Open, 1 = Live, ...
+    if (state !== 0){
+      $('actionStatus').textContent = '❌ Bet is no longer open to join';
+      return;
+    }
+
+    const joinDeadline = Number(b[4]); // unix seconds
+    const now = Math.floor(Date.now()/1000);
+    if (now > joinDeadline){
+      $('actionStatus').textContent = '❌ Join deadline has passed';
       return;
     }
 
@@ -1287,6 +1333,34 @@ async function doRefund(){
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
+    const b = await c.getBet(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+
+    const state          = Number(b[7]);   // enum
+    const joinDeadline   = Number(b[4]);
+    const resolveDeadline= Number(b[5]);
+    const creatorVote    = Number(b[8]);
+    const opponentVote   = Number(b[9]);
+    const now            = Math.floor(Date.now()/1000);
+
+    // Case A: creator refund if no opponent joined and join deadline passed
+    const noOpponent = (b[1] === ethers.ZeroAddress);
+    const canSoloRefund = (state === 0 && noOpponent && now > joinDeadline);
+
+    // Case B: both voted but disagree after resolve deadline
+    const votesSet   = (creatorVote !== -1 && opponentVote !== -1);
+    const votesMismatch = votesSet && (creatorVote !== opponentVote);
+    const canSplitRefund = (state === 1 && votesMismatch && now > resolveDeadline);
+
+    if (!canSoloRefund && !canSplitRefund){
+      $('actionStatus').textContent = '❌ Refund not available yet for this bet';
+      return;
+    }
+
     const tx = await c.refund(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -1303,6 +1377,30 @@ async function doPayout(){
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
+    const b = await c.getBet(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+
+    const state        = Number(b[7]); // Live?
+    const creatorVote  = Number(b[8]);
+    const opponentVote = Number(b[9]);
+
+    if (state !== 1){
+      $('actionStatus').textContent = '❌ Bet is not in a resolvable state';
+      return;
+    }
+
+    const votesSet   = (creatorVote !== -1 && opponentVote !== -1);
+    const votesMatch = votesSet && (creatorVote === opponentVote);
+
+    if (!votesMatch){
+      $('actionStatus').textContent = '❌ Both sides must vote and agree before payout';
+      return;
+    }
+
     const tx = await c.resolve(betId);
     await tx.wait();
     $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
@@ -1349,14 +1447,17 @@ function shuffleIdea(){
 function startNewBet(){
   $('betId').value = '';
 
+  // Reset statuses
+  if ($('createStatus')) $('createStatus').textContent = '';
+  if ($('actionStatus')) $('actionStatus').textContent = '';
+  $('newBetNote').style.display = 'none';
+
   // Reset share URL back to the base page URL with no bet param
   const url = currentShareUrl();
   $('shareUrl').value = url;
 
   // Re-render QR for the base URL
   renderQR();
-
-  $('newBetNote').style.display = 'none';
 }
 
 /* ---------- Wire UI ---------- */
@@ -1379,14 +1480,26 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('usd10').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 10; handleStakeMainInput(); };
   $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
 
-  // +/- in ETH space
+    // +/- controls: step in ETH when in ETH mode, $1 when in USD mode
   $('ethPlus').onclick = ()=>{
-    const v = Math.max(0, parseFloat($('stakeEth').value || '0') + 0.0001);
-    applyStakeFromEth(v);
+    if (stakeMode === 'ETH'){
+      const v = Math.max(0, parseFloat($('stakeEth').value || '0') + 0.0001);
+      applyStakeFromEth(v);
+    } else {
+      const usd = (Number($('stakeMain').value) || 0) + 1;
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
   };
   $('ethMinus').onclick = ()=>{
-    const v = Math.max(0, parseFloat($('stakeEth').value || '0') - 0.0001);
-    applyStakeFromEth(v);
+    if (stakeMode === 'ETH'){
+      const v = Math.max(0, parseFloat($('stakeEth').value || '0') - 0.0001);
+      applyStakeFromEth(v);
+    } else {
+      const usd = Math.max(0, (Number($('stakeMain').value) || 0) - 1);
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
   };
 
   // Quick deadline chips
@@ -1408,11 +1521,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
     renderQR();
   });
   $('shareUrl').value = currentShareUrl();
-  $('btnCopy').onclick = async ()=>{
+    $('btnCopy').onclick = async ()=>{
     try{
       await navigator.clipboard.writeText($('shareUrl').value);
       setCopyPulse($('btnCopy'));
-    }catch{}
+    }catch(e){
+      alert('Could not copy link. You can still select the text and copy it manually.');
+    }
   };
 
   // Connect / switch / new bet
@@ -1463,21 +1578,25 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const panelCreate = $('panelCreate');
   const panelJoin   = $('panelJoin');
 
-  tabCreate.onclick = ()=>{
+    tabCreate.onclick = ()=>{
     tabCreate.classList.add('active');
     tabJoin.classList.remove('active');
     panelCreate.classList.add('active');
     panelJoin.classList.remove('active');
+
+    if ($('actionStatus')) $('actionStatus').textContent = '';
   };
   tabJoin.onclick = ()=>{
     tabJoin.classList.add('active');
     tabCreate.classList.remove('active');
     panelJoin.classList.add('active');
     panelCreate.classList.remove('active');
+
+    if ($('createStatus')) $('createStatus').textContent = '';
   };
 
   // Read ?bet= on load
-  const p = new URLSearchParams(location.search);
+    const p = new URLSearchParams(location.search);
   const b = p.get('bet');
   if (b){
     $('betId').value = b;
@@ -1485,8 +1604,28 @@ window.addEventListener('DOMContentLoaded', ()=>{
     renderQR();
   }
 
+  const ideaParam = p.get('idea');
+  if (ideaParam){
+    $('ideaBox').value = ideaParam;
+  }
+
   // Initial preview
   updatePreview();
+    // React to wallet chain/account changes: force a clean reconnect
+  if (window.ethereum){
+    window.ethereum.on?.('chainChanged', ()=>{
+      signer = null;
+      $('sbState').textContent = 'Network changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+    window.ethereum.on?.('accountsChanged', ()=>{
+      signer = null;
+      $('sbState').textContent = 'Account changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+  }
 });
 </script>
 </body>
