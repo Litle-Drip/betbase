@@ -179,9 +179,9 @@
     .subchips{
       display:flex;
       flex-wrap:wrap;
-      gap:6px;
+      justify-content:center;
       align-items:center;
-      justify-content:space-between;
+      gap:6px;
     }
     .subchips-left{
       display:flex;
@@ -626,8 +626,7 @@
   .card{padding:16px}
 
   .subchips{
-    flex-direction:column;
-    align-items:flex-start;
+    justify-content:center;
   }
   .subchips-left{
     width:100%;
@@ -642,10 +641,9 @@
 
   /* Make the small header chips stack nicely */
   .subchips .chip{
-    width:100%;
+    width:auto;
     justify-content:center;
     text-align:center;
-    margin-bottom:6px;
   }
 
   .quick-chip{
