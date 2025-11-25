@@ -616,41 +616,43 @@
     @media(max-width:640px){
   .app{padding:14px 12px 28px}
   .card{padding:16px}
-  .subchips{flex-direction:column;align-items:flex-start}
-    /* Join / Resolve buttons: 2 per row on phones */
+
+  .subchips{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  /* Join / Resolve buttons: 2 per row on phones */
   .quick-row{
     grid-template-columns:repeat(2, minmax(0, 1fr));
-      /* On phones: let deadline pills wrap into a 2x2 grid */
-  .quick-row{
-    flex-wrap:wrap;
   }
-  .quick-row .quick-chip,
-  .quick-row .deadline-input{
-    flex:1 1 calc(50% - 8px);
-  }
-}
 
-  /* NEW: make each chip a full-width row on mobile */
+  /* Make the small header chips stack nicely */
   .subchips .chip{
-    width: 100%;
-    justify-content: center;
-    text-align: center;
-    margin-bottom:6px; /* optional */
+    width:100%;
+    justify-content:center;
+    text-align:center;
+    margin-bottom:6px;
   }
+
   .quick-chip{
     width:100%;
     text-align:center;
   }
+
   .summary-card{font-size:11px}
+
   .top-actions{
-    display: flex;
-    gap: 10px;
+    display:flex;
+    gap:10px;
   }
+
   /* contract pill — slightly smaller on phones */
   .addr{
     font-size:11px;
     padding:6px 12px;
   }
+
   .stake-amount{
     font-size:30px;
     min-width:90px;
@@ -761,9 +763,14 @@
       <div class="subchips-left">
         <span id="chipNetwork" class="chip">Base • Sepolia • (84532)</span>
         <span class="chip badge">Fee 2.5%</span>
-        <a class="chip" href="https://sepolia.basescan.org/address/0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433#code" target="_blank">
-          Verified contract ↗
-        </a>
+        <a
+  class="chip"
+  href="https://sepolia.basescan.org/address/0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433#code"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Verified contract ↗
+</a>
       </div>
     </div>
   </div>
@@ -1208,21 +1215,24 @@ async function doVote(creatorWon){
       return;
     }
     const state = Number(b[7]);
-    if (state !== 1){
-      $('actionStatus').textContent = '❌ Voting not available';
-      return;
-    }
+if (state !== 1){
+  $('actionStatus').textContent = '❌ Voting not available';
+  return;
+}
 
-    const user = await signer.getAddress();
-    if (user !== b[0] && user !== b[1]){
-      $('actionStatus').textContent = '❌ You are not part of this bet';
-      return;
-    }
+const user = await signer.getAddress();
+if (user !== b[0] && user !== b[1]){
+  $('actionStatus').textContent = '❌ You are not part of this bet';
+  return;
+}
 
-    if ((user === b[0] && b[8] !== -1) || (user === b[1] && b[9] !== -1)){
-      $('actionStatus').textContent = '✅ Vote already submitted';
-      return;
-    }
+const creatorVote  = Number(b[8]);
+const opponentVote = Number(b[9]);
+
+if ((user === b[0] && creatorVote !== -1) || (user === b[1] && opponentVote !== -1)){
+  $('actionStatus').textContent = '✅ Vote already submitted';
+  return;
+}
 
     const tx = await c.confirmWinner(betId, Boolean(creatorWon));
     await tx.wait();
