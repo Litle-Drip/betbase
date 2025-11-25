@@ -590,15 +590,6 @@
     }
 
     /* Special buttons */
-    #ethMinus,
-    #ethPlus{
-      padding:10px 12px;
-      font-size:16px;
-      border-radius:999px;
-      border:1px solid #27272f;
-      background:#101014;
-      color:#e4e4e7;
-    }
     #ethMinus:active,
     #ethPlus:active{
       background:var(--accent);
@@ -691,6 +682,29 @@
   font-size:13px;
   text-align:center;
 }
+/* - / + controls beside the amount */
+.stake-adjust{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.adjust-btn{
+  border-radius:12px;
+  border:2px solid #22c55e; /* green outline */
+  background:#0b0b10;
+  color:#22c55e;
+  font-size:18px;
+  width:38px;
+  height:28px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.adjust-btn:hover{
+  background:#22c55e;
+  color:#0b0b10;
+}
 
   </style>
 
@@ -757,8 +771,13 @@
       <div class="stake-area">
         <div class="stake-label">I want to bet</div>
         <div class="stake-main">
-          <span id="stakeSymbol" class="stake-symbol">$</span>
+           <span id="stakeSymbol" class="stake-symbol">$</span>
           <input id="stakeMain" class="stake-amount" type="number" value="5" />
+
+          <div class="stake-adjust">
+            <button id="ethMinus" class="adjust-btn">−</button>
+            <button id="ethPlus" class="adjust-btn">+</button>
+          </div>
           <div class="stake-toggle">
             <button id="stakeModeEth">ETH</button>
             <button id="stakeModeUsd" class="connected">USD</button>
@@ -773,8 +792,6 @@
           <button id="usd1" class="btn small ghost">$1</button>
           <button id="usd5" class="btn small ghost">$5</button>
           <button id="usd20" class="btn small ghost">$20</button>
-          <button id="ethMinus" class="btn small ghost">−</button>
-          <button id="ethPlus"  class="btn small ghost">+</button>
         </div>
       </div>
 
