@@ -628,7 +628,14 @@
   .quick-row .deadline-input{
     flex:1 1 calc(50% - 8px);
   }
+  @media (max-width:640px){
+  .amount-row{
+    flex-wrap:wrap;
   }
+  .quick-amt{
+    flex:1 1 calc(50% - 8px);
+  }  
+}
 
   /* NEW: make each chip a full-width row on mobile */
   .subchips .chip{
@@ -704,6 +711,33 @@
 .adjust-btn:hover{
   background:#22c55e;
   color:#0b0b10;
+}
+/* Larger preset amount buttons */
+.amount-row{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  margin:14px 0 20px;
+}
+
+.quick-amt{
+  flex:1;
+  min-width:0;
+  border-radius:20px;
+  border:1px solid #2a2a2f;
+  background:#1a1a1d;
+  padding:14px 0;
+  font-size:15px;
+  font-weight:500;
+  color:#e4e4e7;
+  text-align:center;
+  cursor:pointer;
+  transition:0.15s ease;
+}
+
+.quick-amt:hover{
+  background:#26262b;
+  border-color:#323238;
 }
 
   </style>
@@ -788,10 +822,11 @@
         <input id="stakeEth" type="hidden" value="0.0014"/>
         <input id="stakeUsd" type="hidden" value="5"/>
 
-        <div class="row" style="justify-content:center;gap:8px;margin-top:6px">
-          <button id="usd1" class="btn small ghost">$1</button>
-          <button id="usd5" class="btn small ghost">$5</button>
-          <button id="usd20" class="btn small ghost">$20</button>
+        <div class="quick-row amount-row">
+          <button id="usd1" class="quick-amt">$1</button>
+          <button id="usd5" class="quick-amt">$5</button>
+          <button id="usd10" class="quick-amt">$10</button>
+          <button id="usd20" class="quick-amt">$20</button>
         </div>
       </div>
 
