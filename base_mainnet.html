@@ -623,11 +623,8 @@
   .card{padding:16px}
 
   .subchips{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    align-items:center;
-    gap:6px;
+    flex-direction:column;
+    align-items:flex-start;
   }
   /* Join / Resolve buttons: 2 per row on phones */
   .quick-row{
@@ -636,9 +633,10 @@
 
   /* Make the small header chips stack nicely */
  .subchips .chip{
-    width:auto;
-    flex-shrink:1;
-    white-space:nowrap;
+    width:100%;
+    justify-content:center;
+    text-align:center;
+    margin-bottom:6px;
   }
       
   .subchips-left{
