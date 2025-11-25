@@ -765,6 +765,45 @@
       text-decoration:underline;
     }
 
+/* Simple footer */
+.site-footer{
+  max-width:960px;
+  margin:24px auto 0;
+  padding:12px 20px 24px;
+  font-size:11px;
+  color:var(--muted);
+  border-top:1px solid #27272f;
+}
+
+.site-footer-top{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.site-footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.site-footer a{
+  color:var(--muted);
+  text-decoration:none;
+}
+
+.site-footer a:hover{
+  text-decoration:underline;
+}
+
+@media(max-width:640px){
+  .site-footer{
+    padding:12px 12px 24px;
+  }
+}
+    
   </style>
 
   <!-- Libs -->
