@@ -856,7 +856,7 @@
         </div>
       </div>
 
-      <div class="footer-note">USD values are estimates only.</div>
+      <div class="footer-note" id="usdNote">USD values are estimates only.</div>
 
       <!-- Actions -->
       <div class="row" style="margin-top:16px;gap:10px">
@@ -965,6 +965,34 @@
 const BASE = { idHex: '0x14a34', rpc: 'https://sepolia.base.org', explorer: 'https://sepolia.basescan.org' };
 const FEE_BPS = 250;        // fixed 2.5%
 let   ETH_USD = 3500;       // preview only
+  async function refreshEthUsd(){
+  // Try to update ETH_USD using a public spot price
+  try{
+    const res = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
+    const data = await res.json();
+    const price = parseFloat(data?.data?.amount);
+
+    if (!isNaN(price) && price > 0){
+      ETH_USD = price;
+
+      const note = $('usdNote');
+      if (note){
+        note.textContent = `USD values use ETH ≈ $${price.toFixed(2)} (preview only).`;
+      }
+
+      // Recompute pot / winner using the new rate
+      updatePreview();
+      return;
+    }
+  }catch(e){
+    // fall through to stale warning
+  }
+
+  const note = $('usdNote');
+  if (note){
+    note.textContent = 'USD values are estimates only and may be outdated.';
+  }
+}
 const CONTRACT_ADDRESS = '0xD251F4aFB44Fa54Af8E714C8219d5a535Bc59433';
 
 /* ---------- Shortcuts ---------- */
@@ -1136,6 +1164,7 @@ function requireBetId(){
 async function doCreate(){
   $('createStatus').textContent = 'Sending…';
   try{
+    await ensureBase();
     if (!signer) await connect();
     const c = getContract();
     const stakeEth = String($('stakeEth').value || '0');
@@ -1178,6 +1207,7 @@ async function doCreate(){
 async function doJoin(){
   $('actionStatus').textContent = 'Sending…';
   try{
+    await ensureBase();
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
@@ -1205,6 +1235,7 @@ async function doJoin(){
 async function doVote(creatorWon){
   $('actionStatus').textContent = 'Sending…';
   try{
+    await ensureBase();
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
@@ -1246,6 +1277,7 @@ if ((user === b[0] && creatorVote !== -1) || (user === b[1] && opponentVote !== 
 async function doRefund(){
   $('actionStatus').textContent = 'Sending…';
   try{
+    await ensureBase();
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
@@ -1261,6 +1293,7 @@ async function doRefund(){
 async function doPayout(){
   $('actionStatus').textContent = 'Sending…';
   try{
+    await ensureBase();
     if (!signer) await connect();
     const c = getContract();
     const betId = requireBetId();
@@ -1309,8 +1342,14 @@ function shuffleIdea(){
 /* ---------- New bet link ---------- */
 function startNewBet(){
   $('betId').value = '';
-  $('shareUrl').value = '';
-  $('qrBox').innerHTML = '';
+
+  // Reset share URL back to the base page URL with no bet param
+  const url = currentShareUrl();
+  $('shareUrl').value = url;
+
+  // Re-render QR for the base URL
+  renderQR();
+
   $('newBetNote').style.display = 'none';
 }
 
@@ -1320,6 +1359,17 @@ window.addEventListener('DOMContentLoaded', ()=>{
   applyStakeFromEth(0.0014);
   setStakeMode('USD');
   $('stakeMain').addEventListener('input', handleStakeMainInput);
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  // stake defaults (start from ETH value, show USD)
+  applyStakeFromEth(0.0014);
+  setStakeMode('USD');
+  $('stakeMain').addEventListener('input', handleStakeMainInput);
+
+  // Try to refresh ETH/USD preview rate
+  refreshEthUsd();
+  ...
+});
 
   // Mode toggle
   $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
