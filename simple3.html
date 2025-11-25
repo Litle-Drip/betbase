@@ -512,26 +512,30 @@
       margin-bottom:4px;
     }
     .share-help{
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:10px;
-    }
-    .qr-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-    .qr-box{
-      border-radius:18px;
-      border:1px dashed #27272f;
-      background:#0b0b10;
-      width:150px;
-      height:150px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin-top:10px;
-    }
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* Share link + QR layout */
+.qr-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  align-items:center;
+}
+
+/* QR card */
+.qr-box{
+  border-radius:18px;
+  border:1px solid #27272f;   /* solid border instead of dashed */
+  background:#050507;
+  width:170px;
+  height:170px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
     /* Summary footer */
     .summary-card{
@@ -925,12 +929,14 @@
       <div class="share-title">Share link &amp; QR</div>
       <div class="share-help">Send this link or QR to your opponent so they open the exact bet.</div>
 
-      <div class="row wrap">
-        <button id="btnCopy" class="btn small ghost">Copy link</button>
-        <input id="shareUrl" class="input" style="flex:1" readonly/>
-      </div>
+      <div class="qr-row">
+        <div class="row wrap" style="flex:1; min-width:260px">
+          <button id="btnCopy" class="btn small ghost">Copy link</button>
+          <input id="shareUrl" class="input" style="flex:1" readonly/>
+        </div>
 
-      <div class="qr-box" id="qrBox"></div>
+        <div class="qr-box" id="qrBox"></div>
+      </div>
     </div>
   </div>
 
