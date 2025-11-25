@@ -285,7 +285,7 @@ $('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS}`;
 function currentShareUrl() {
   const betId = $('betId').value;
   try {
-    const u = new URL(location.href);
+    const u = new URL(location.origin + location.pathname);
     if (betId) {
       // If we have a betId, include it in the URL
       u.searchParams.set('bet', betId);
