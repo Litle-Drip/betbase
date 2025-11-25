@@ -330,60 +330,61 @@
       text-align:center;
       margin-bottom:4px;
     }
-    .stake-main{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:14px;
-      margin-bottom:10px;
-    }
-      /* Bigger preset + / - buttons inside Create Bet */
-    .stake-main .btn.small{
-      padding:12px 22px;   /* taller & wider */
-      font-size:15px;      /* bigger text */
-      font-weight:600;     /* a bit bolder */
-      min-width:88px;      /* gives each button a nice pill shape */
-      border-radius:999px;
-      text-align:center;
-      justify-content:center;
-    }
-    .stake-symbol{
-      font-size:20px;
-      color:var(--muted);
-    }
-    .stake-amount{
-      font-size:40px;
-      font-weight:700;
-      min-width:110px;
-      text-align:center;
-      border:none;
-      outline:none;
-      background:transparent;
-      color:var(--accent);
-      letter-spacing:-0.02em;
-      line-height:1.05;
-    }
-    .stake-amount::-webkit-outer-spin-button,
-    .stake-amount::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-    .stake-toggle{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .stake-toggle button{
-      border-radius:999px;
-      border:1px solid #27272f;
-      background:#101014;
-      padding:4px 10px;
-      font-size:11px;
-      color:#e4e4e7;
-      cursor:pointer;
-    }
-    .stake-toggle button.connected{
-      border-color:var(--accent);
-      color:var(--accent);
-    }
+    /* Centered amount + side currency toggle like the ETH mock */
+.stake-main{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  margin:16px 0 10px;
+}
 
+.stake-symbol{
+  font-size:32px;
+  color:var(--muted);
+  min-width:24px;
+  text-align:right;
+}
+
+/* Big white main amount */
+.stake-amount{
+  font-size:48px;
+  font-weight:700;
+  min-width:0;
+  width:160px;
+  text-align:center;
+  border:none;
+  outline:none;
+  background:transparent;
+  color:#f9fafb;
+  letter-spacing:-0.02em;
+  line-height:1.05;
+}
+
+/* Vertical ETH / USD toggle */
+.stake-toggle{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.stake-toggle button{
+  background:#26262a;
+  border-radius:10px;
+  border:1px solid #26262a;
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:700;
+  color:#e4e4e7;
+  cursor:pointer;
+}
+
+/* Selected mode – blue ring + brighter, like your reference */
+.stake-toggle button.connected{
+  border:2px solid #2563eb;
+  background:#111827;
+  color:#f9fafb;
+}
     
     /* Join / Resolve pills – match the clean ETH mock */
 .quick-row{
@@ -735,7 +736,7 @@
       <div class="stake-area">
         <div class="stake-label">I want to bet</div>
         <div class="stake-main">
-          <span class="stake-symbol">$</span>
+          <span id="stakeSymbol" class="stake-symbol">$</span>
           <input id="stakeMain" class="stake-amount" type="number" value="5" />
           <div class="stake-toggle">
             <button id="stakeModeEth">ETH</button>
@@ -986,6 +987,12 @@ function setStakeMode(mode){
 
   $('stakeModeEth').classList.toggle('connected', mode === 'ETH');
   $('stakeModeUsd').classList.toggle('connected', mode === 'USD');
+
+  // Update the currency symbol: Ξ for ETH, $ for USD
+  const sym = $('stakeSymbol');
+  if (sym){
+    sym.textContent = (mode === 'ETH') ? 'Ξ' : '$';
+  }
 
   if (mode === 'ETH'){
     $('stakeMain').step = '0.0001';
