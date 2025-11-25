@@ -628,13 +628,6 @@
   .quick-row .deadline-input{
     flex:1 1 calc(50% - 8px);
   }
-  @media (max-width:640px){
-  .amount-row{
-    flex-wrap:wrap;
-  }
-  .quick-amt{
-    flex:1 1 calc(50% - 8px);
-  }  
 }
 
   /* NEW: make each chip a full-width row on mobile */
@@ -1325,6 +1318,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // Quick USD buttons
   $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
   $('usd5').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 5;  handleStakeMainInput(); };
+  $('usd10').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 10; handleStakeMainInput(); };
   $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
 
   // +/- in ETH space
