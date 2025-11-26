@@ -82,41 +82,73 @@
   <div class="doc-container">
     <div class="doc-card">
 <pre>
-    ❓What is The Juice?
+
+To participate safely:
+✅Both players must vote
+✅Votes cannot be changed
+✅No vote = no payout or refund
+✅Only matching votes trigger payout
+✅Only mismatched votes (both players voted) trigger refunds
+✅Funds cannot be recovered if someone refuses to vote
+  
+    ❓ What is The Juice?
 
 The Juice is an experimental, on-chain challenge / escrow tool built by Juice Labs LLC. It lets two participants lock funds into a smart contract and then submit outcomes to release or refund funds based on the result.
 
-    ❓Is this a sportsbook or casino?
+    ❓ Is this a sportsbook or casino?
 
 No. The Juice does not set odds, take positions against users, or act as a traditional sportsbook or casino. It is a peer-to-peer escrow and outcome-voting tool. You are responsible for how and where you use it, and for complying with your local laws.
 
-    ❓What network does it run on?
+    ❓ What network does it run on?
 
 The current version of The Juice runs on the Base network and uses self-custodial wallets like MetaMask to sign transactions.
 
-    ❓Who controls my funds?
+    ❓ Who controls my funds?
 
 You do. The Juice is non-custodial. Funds are held in smart contracts you interact with directly from your wallet. Juice Labs LLC does not have access to your private keys.
 
-    ❓Are there protocol fees?
+    ❓ Are there protocol fees?
 
 Yes. Some interactions may charge a protocol fee that is sent to a designated treasury address. The fee logic is encoded in the smart contract and may be displayed in the interface. Always review transaction details before approving.
 
-    ❓What happens if there’s a bug or exploit?
+    ❓ What happens if there’s a bug or exploit?
 
 Because The Juice is experimental software deployed on a public blockchain, bugs or vulnerabilities can cause permanent loss of funds. There is no guarantee of recovery. Only use funds you can afford to lose.
 
-    ❓Is using The Juice legal in my country/state?
+    ❓ Is using The Juice legal in my country/state?
 
 We cannot provide legal advice. Laws around digital assets, contests, and wagering vary widely by jurisdiction. You are solely responsible for understanding and complying with the laws that apply to you.
 
-    ❓Do you store my personal information?
+    ❓ Do you store my personal information?
 
 We aim to collect as little information as possible. We may see wallet addresses and on-chain activity, plus basic web analytics. See our Privacy Policy for details.
 
-    ❓Who is behind Juice Labs?
+    ❓ Who is behind Juice Labs?
 
 Juice Labs LLC is a small software development and innovation studio focused on blockchain-based applications, digital asset operations, and experimental technology projects.
+
+    ❓ How do challenges get resolved?
+
+A challenge resolves when both players submit their vote.
+* If both votes match, the contract automatically pays the winner.
+* Both vote the same → instant payout
+* Both vote differently → full refunds after the deadline
+* Only one votes → challenge cannot finish
+* No one votes → challenge cannot finish
+
+    ❓ Can I change my vote after submitting it?
+No. Votes are permanent once submitted, and cannot be edited or undone. This prevents cheating or manipulation.
+
+Make sure to vote carefully.
+
+    ❓ Can stuck funds be fixed?
+
+Not in this version. Once a challenge becomes stuck due to missing votes:
+No payout path exists
+No refund path exists
+The on-chain rules prevent the contract from sending funds back
+This is why it’s important to challenge reliable players.
+    
 </pre>
     </div>
   </div>
