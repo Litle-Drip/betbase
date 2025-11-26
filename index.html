@@ -1297,32 +1297,19 @@ const ABI = [
 ];
 async function ensureBase(){
   if (!window.ethereum) {
-    alert('No wallet detected (MetaMask / browser wallet required).');
+    alert('Wallet not found (MetaMask or browser wallet required).');
     throw new Error('no wallet');
   }
 
-  let chain = null;
-
-  // Try to read the current chain, but don’t fail if eth_chainId isn’t supported
-  try {
-    chain = await window.ethereum.request({ method: 'eth_chainId' });
-  } catch (e) {
-    console.warn('eth_chainId not supported by this wallet, skipping direct chain check', e);
-    chain = null;
-  }
-
-  // If we already know we’re on Base, nothing to do
-  if (chain === BASE.idHex) return;
-
-  // Otherwise, try to switch/add Base
+  // This DApp is Base-only: always try to switch to Base.
   try {
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: BASE.idHex }]
     });
   } catch (e) {
-    // 4902 = chain not added yet → add Base then retry
     if (e.code === 4902) {
+      // Chain not added yet → add Base then user approves
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
@@ -1334,7 +1321,7 @@ async function ensureBase(){
         }]
       });
     } else {
-      // Any other error is real (user rejected, wallet doesn’t support switching, etc.)
+      console.error('Failed to switch to Base:', e);
       throw e;
     }
   }
