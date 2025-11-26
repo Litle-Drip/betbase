@@ -1296,21 +1296,46 @@ const ABI = [
   }
 ];
 async function ensureBase(){
-  if (!window.ethereum){ alert('MetaMask not found'); throw new Error('no wallet'); }
-  const chain = await window.ethereum.request({ method:'eth_chainId' });
-  if (chain !== BASE.idHex){
-    try{
-      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: BASE.idHex }] });
-    }catch(e){
-      if (e.code === 4902){
-        await window.ethereum.request({
-          method:'wallet_addEthereumChain',
-          params:[{ chainId: BASE.idHex, chainName:'Base Mainnet',
-                    nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18},
-                    rpcUrls:[BASE.rpc], blockExplorerUrls:[BASE.explorer]}]
+  if (!window.ethereum) {
+    alert('No wallet detected (MetaMask / browser wallet required).');
+    throw new Error('no wallet');
+  }
 
-        });
-      }else{ throw e; }
+  let chain = null;
+
+  // Try to read the current chain, but don’t fail if eth_chainId isn’t supported
+  try {
+    chain = await window.ethereum.request({ method: 'eth_chainId' });
+  } catch (e) {
+    console.warn('eth_chainId not supported by this wallet, skipping direct chain check', e);
+    chain = null;
+  }
+
+  // If we already know we’re on Base, nothing to do
+  if (chain === BASE.idHex) return;
+
+  // Otherwise, try to switch/add Base
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: BASE.idHex }]
+    });
+  } catch (e) {
+    // 4902 = chain not added yet → add Base then retry
+    if (e.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: BASE.idHex,
+          chainName: 'Base Mainnet',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          rpcUrls: [BASE.rpc],
+          blockExplorerUrls: [BASE.explorer]
+        }]
+      });
+    } else {
+      // Any other error is real (user rejected, wallet doesn’t support switching, etc.)
+      throw e;
     }
   }
 }
