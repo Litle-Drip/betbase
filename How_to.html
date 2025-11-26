@@ -1,1 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <title>Terms of Use – Juice Labs</title>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #101010;
+      --card-border: rgba(255, 255, 255, 0.05);
+      --accent: #4cc3ff;      /* Juice neon blue */
+      --text-main: #e2e8f0;
+    }
+
+    /* Page background + centering */
+    body {
+      margin: 0;
+      padding: 32px 12px;
+      background:
+        radial-gradient(circle at top, rgba(76, 195, 255, 0.10), transparent 55%),
+        var(--bg);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    /* Outer wrapper so card shrinks on mobile */
+    .doc-container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* The actual card */
+    .doc-card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 32px 24px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 0 40px rgba(76, 195, 255, 0.18); /* blue glow */
+      box-sizing: border-box;
+      overflow-wrap: break-word;
+    }
+
+    /* Headings */
+    h1, h2, h3 {
+      color: var(--accent);
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    /* Make preformatted legal text wrap inside the card */
+    pre {
+      margin: 0;
+      white-space: pre-wrap;   /* KEY: wrap long lines */
+      word-wrap: break-word;   /* break long words if needed */
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 24px 8px;
+      }
+      .doc-card {
+        padding: 24px 16px;
+      }
+      pre {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="doc-container">
+    <div class="doc-card">
+<pre>
+
+How to Read BaseScan Transaction Logs
+
+When you create, join, vote, or payout, the contract emits events.
+These events show up inside BaseScan under the “Logs” tab.
+Here’s how to read them.
+
+Event Name
+Example: ChallengeOpened 
+This means someone created a new challenge.
+
+Topics Section (indexed fields)
+These are fields that the blockchain makes searchable.
+
+  For ChallengeOpened topics include:
+    •	challengeId (the unique challenge number)
+    •	challenger (address that created the challenge)
+
+  Example:	 Topic 1 → challengeId = 4
+    Topic 2 → challenger = 0xF7A393468e9e...
+    This is where you find the challenge number used in your DApp.
+
+Data Section (non-indexed fields)
+
+These are all the numeric or informational values.
+
+stakeWei: 30000000000000000    (0.03 ETH)
+feeBps: 250                    (2.5% fee)
+joinDeadline: 1764114909       (UNIX timestamp)
+resolveDeadline: 1764116709    (UNIX timestamp)
+
+Use epochconverter to convert timestamps, or: new Date(1764114909 * 1000)
+
+What each field means
+
+Field: Meaning
+challengeId :Unique ID of the challenge
+challenger: Address that created the challenge
+stakeWei: Amount each player deposited (in wei)
+feeBps: Protocol fee in basis points (250 = 2.5%)
+joinDeadline:	Last time someone can join
+resolveDeadline:	Last time someone can vote before refunds open
+resolve window:	Time between join deadline → refund availability
+
+Example Breakdown
+  
+  Event: ChallengeOpened
+  Topics:
+  •	Topic 1 = challengeId 4
+  •	Topic 2 = challenger wallet
+
+  Data:
+  •	0.03 ETH stake
+  •	2.5% fee
+  •	Join deadline timestamp
+  •	Resolve deadline timestamp
+
+This means: Challenge #4 was created successfully and will follow the join → vote → payout/refund flow.
+
+Final Notes for Users
+
+Both players must vote.
+Votes cannot be changed.
+Matching votes = payout.
+Mismatched votes = refund (after deadline).
+Missing votes = challenge stuck forever in this version.
+Use small stakes unless you trust the other player to vote.
+
+    
+</pre>
+    </div>
+  </div>
+</body>
+</html>
