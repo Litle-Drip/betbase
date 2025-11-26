@@ -955,7 +955,7 @@
   <div id="panelJoin" class="panel">
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Join &amp; Resolve</div>
+        <div class="card-title" style="display:none;margin:0;padding:0;"></div>
       </div>
       <div id="resolveNote" class="card-sub">Paste a bet ID to join, refund, or finalize.</div>
 
@@ -1430,6 +1430,10 @@ async function doCreate(){
     $('shareUrl').value = currentShareUrl();
     renderQR();
     $('newBetNote').style.display = 'block';
+
+    // Auto-switch to Join & Resolve tab after bet is created
+    const tabJoin = $('tabJoin');
+    if (tabJoin) tabJoin.click();
   }catch(e){
     console.error('createBet error',e);
     $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
