@@ -1297,19 +1297,31 @@ const ABI = [
 ];
 async function ensureBase(){
   if (!window.ethereum) {
-    alert('Wallet not found (MetaMask or browser wallet required).');
+    alert('Wallet not found (MetaMask / browser wallet required).');
     throw new Error('no wallet');
   }
 
-  // This DApp is Base-only: always try to switch to Base.
+  // 1) Check current chain
+  let chain;
+  try {
+    chain = await window.ethereum.request({ method: 'eth_chainId' });
+  } catch (e) {
+    console.warn('eth_chainId not supported, skipping pre-check', e);
+    chain = null;
+  }
+
+  // If we already know we’re on Base, nothing to do
+  if (chain === BASE.idHex) return;
+
+  // 2) Try to switch to Base
   try {
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: BASE.idHex }]
     });
   } catch (e) {
+    // Chain not added yet → add Base
     if (e.code === 4902) {
-      // Chain not added yet → add Base then user approves
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
@@ -1320,10 +1332,26 @@ async function ensureBase(){
           blockExplorerUrls: [BASE.explorer]
         }]
       });
-    } else {
-      console.error('Failed to switch to Base:', e);
-      throw e;
+      return;
     }
+
+    // Method not supported by this wallet (your current error)
+    if (
+      e.code === -32601 ||
+      (e.message && e.message.toLowerCase().includes('wallet_switchethereumchain'))
+    ) {
+      alert(
+        'Your wallet does not support automatic network switching.\n\n' +
+        'Please open your wallet, manually switch the network to **Base Mainnet (chain id 8453)**, ' +
+        'then click Connect Wallet again.'
+      );
+      console.warn('wallet_switchEthereumChain not supported; user must switch manually', e);
+      throw new Error('wallet_switchEthereumChain not supported');
+    }
+
+    // Any other error = real failure
+    console.error('Failed to switch to Base:', e);
+    throw e;
   }
 }
 async function connect(){
