@@ -1,0 +1,1844 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>The Juice — Crypto Escrow Challenges</title>
+
+  <!-- Styles -->
+  <style>
+    :root{
+      --bg:#050608;
+      --card:#16171b;
+      --card-soft:#1c1d22;
+      --text:#f4f4f5;
+      --muted:#a1a1aa;
+      --border:#27272f;
+      --accent: #00eaff;
+      --accent-ink: #001014;
+      --glow: 0 0 12px rgba(0,234,255,0.65);
+      --danger:#ef4444;
+      --chip:#111114;
+      --radius:18px;
+      --fs:16px;
+      --accent: #00eaff;
+      --accent-ink: #001014;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:#000;
+      color:var(--text);
+      font:500 var(--fs)/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    }
+
+    .app{
+  max-width:960px;
+  margin:0 auto;
+  padding:20px 20px 24px;
+    }
+
+    /* Header */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+      padding:0 16px;
+    }
+  .top-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:700;
+      font-size:18px;
+    }
+    .brand-logo{
+      width:24px;
+      height:24px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:6px;
+    background:transparent;
+    border:none;
+    padding:0;
+  }
+    .brand-logo img {
+      width: 22px;
+      height: 22px;
+      display: block;
+}
+    /* Buttons / chips */
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#101014;
+      color:var(--text);
+      padding:9px 16px;
+      font-size:14px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      transition:background .12s ease,border-color .12s ease,transform .06s ease;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      background:#18181b;
+    }
+    .btn.primary{
+      background:#f9fafb;
+      color:#020617;
+      border-color:#f9fafb;
+      font-weight:600;
+    }
+    .btn.primary:hover{
+      background:#e5e7eb;
+      border-color:#e5e7eb;
+    }
+    .btn.accent{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:var(--accent-ink);
+      font-weight:600;
+    }
+    .btn.accent:hover{
+      background:#16a34a;
+      border-color:#16a34a;
+    }
+    .btn.ghost{
+      border-color:var(--border);
+      background:#101014;
+      color:var(--text);
+    }
+    .btn.small{padding:6px 12px;font-size:13px}
+    .btn.connected{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+
+    .chip{
+      background:var(--chip);
+      border-radius:999px;
+      border:1px solid var(--border);
+      padding:5px 10px;
+      font-size:11px;
+      opacity:0.82;
+      color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      white-space:nowrap;
+    }
+    .chip.badge{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+    .chip a{
+      color:inherit;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+/* View Contract click flash */
+    .chip:active {
+      background: var(--accent);
+      color: var(--accent-ink);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .subbar{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:12px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+      padding:0 16px;
+    }
+    .addr{
+      border-radius:999px;
+      border:1px solid var(--accent);
+      background:#0b0b10;
+      padding:8px 18px;
+      margin-bottom:10px;   /* 👈 add this */
+      font-size:12px;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      text-align:center;
+    }
+    .subchips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .subchips-left{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+    .subchips-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      background:#050509;
+      border-radius:999px;
+      border:1px solid var(--accent);
+      padding:4px;
+      margin:18px auto 24px;
+      max-width:520px;
+    }
+    .tab{
+      flex:1;
+      border-radius:999px;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      padding:8px 0;
+      font-size:14px;
+      font-weight:500;
+      cursor:pointer;
+      transition:background .12s ease,color .12s ease;
+    }
+    .tab.active{
+      background:#f9fafb;
+      color:#020617;
+      font-weight:600;
+      border:1px solid var(--accent);
+    }
+
+    /* Panels */
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* Card */
+    .card{
+      border-radius:24px;
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:24px 24px 22px;       /* a bit more breathing room */
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
+      max-width:520px;              /* narrower box like your reference */
+      margin:0 auto 16px;           /* center + a little bottom gap */
+    }
+    .card-header{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      margin-bottom:18px;
+    }
+    .card-title{
+      font-size:20px;
+      font-weight:600;
+      text-align:center;
+      margin-bottom:4px;
+    }
+    .card-sub{
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:14px;
+    }
+
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:4px;
+      display:block;
+    }
+    .input{
+      width:100%;
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      color:var(--text);
+      padding:10px 14px;
+      font-size:14px;
+    }
+    .input::placeholder{color:#52525b}
+
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .row.wrap{flex-wrap:wrap}
+    .stack{display:flex;flex-direction:column;gap:10px}
+
+    /* Idea bar with inline dice button */
+.idea-row{
+  position:relative;
+  margin-bottom:18px;
+}
+
+.idea-input{
+  width:100%;
+  border-radius:18px;
+  border:1px solid #27272f;
+  background:#26262a;
+  color:var(--text);
+  padding:12px 48px 12px 16px;  /* space on right for dice */
+  font-size:14px;
+}
+
+/* Dice button inside the bar */
+.idea-dice{
+  position:absolute;
+  top:50%;
+  right:10px;
+  transform:translateY(-50%);
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  border:2px solid #18DCF1;     /* blue ring like your reference */
+  background:#101014;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:18px;                /* size of the 🎲 emoji */
+}
+.idea-dice:hover{
+  background:#18181b;
+}
+
+    .stake-area{
+      margin-top:18px;      /* slightly closer to subtitle */
+      margin-bottom:20px;
+      text-align:center;
+    }
+    .stake-label{
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:4px;
+    }
+    /* Centered amount + side currency toggle like the ETH mock */
+.stake-main{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  margin:16px 0 10px;
+}
+
+.stake-symbol{
+  font-size:32px;
+  color:var(--muted);
+  min-width:24px;
+  text-align:right;
+}
+
+/* Big white main amount */
+.stake-amount{
+  font-size:48px;
+  font-weight:700;
+  min-width:0;
+  width:160px;
+  text-align:center;
+  border:none;
+  outline:none;
+  background:transparent;
+  color:#f9fafb;
+  letter-spacing:-0.02em;
+  line-height:1.05;
+}
+
+/* Vertical ETH / USD toggle */
+.stake-toggle{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.stake-toggle button{
+  background:#26262a;
+  border-radius:10px;
+  border:1px solid #26262a;
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:700;
+  color:#e4e4e7;
+  cursor:pointer;
+}
+
+/* Selected mode – blue ring + brighter, like your reference */
+.stake-toggle button.connected{
+  border:2px solid #18DCF1;
+  background:#111827;
+  color:#f9fafb;
+}
+    
+    /* Join / Resolve pills – match the clean ETH mock */
+.quick-row{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+  margin-top:10px;
+  width:100%;        /* ✅ forces full-row sizing */
+}
+
+.quick-row .quick-chip,
+.quick-row .deadline-input{
+  flex:1;
+  min-width:0;
+  text-align:center;
+}
+
+/* Big, soft segment-style buttons */
+.quick-chip{
+  border-radius:24px;
+  border:1px solid #26262a;
+  background:#26262a;
+  color:#e4e4e7;
+  padding:12px 0;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.quick-chip:hover{
+  background:#323238;
+  border-color:#323238;
+}
+
+/* Custom minutes box styled to match the pills */
+.deadline-input{
+  border-radius:24px;
+  border:1px solid #26262a;
+  background:#101014;
+  color:#e4e4e7;
+  padding:12px 0;
+  font-size:13px;
+}
+
+    .footer-note{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+      text-align:right;
+    }
+
+    .status{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:16px;
+    }
+
+    /* Join / resolve */
+    .join-input-row{
+      margin-bottom:10px;
+    }
+    .join-input{
+      flex:1;
+    }
+    .btn-clear{
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      color:#e4e4e7;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    .resolve-section{
+      margin-top:16px;
+      padding-top:12px;
+      border-top:1px solid #27272f;
+    }
+    .resolve-title{
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:4px;
+    }
+    .resolve-sub{
+      font-size:11px;
+      color:#71717a;
+      text-align:center;
+      margin-bottom:10px;
+    }
+    .vote-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .vote-column-title{
+      font-size:11px;
+      color:#a1a1aa;
+      text-align:center;
+      margin-bottom:6px;
+    }
+    .vote-buttons{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    /* Share / QR */
+    .share-card{
+        margin-top:14px;
+        border-radius:18px;
+        background:var(--card-soft);
+        border:1px solid var(--border);
+        padding:14px 16px 16px;
+        max-width:520px;
+        margin-left:auto;
+        margin-right:auto;;
+    }
+    .share-title{
+      font-size:13px;
+      font-weight:500;
+      margin-bottom:4px;
+    }
+    .share-help{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:10px;
+}
+
+/* Share link + QR layout */
+.qr-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  align-items:center;
+}
+
+/* QR card */
+.qr-box{
+  border-radius:18px;
+  border:1px solid #27272f;   /* solid border instead of dashed */
+  background:#050507;
+  width:170px;
+  height:170px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+    /* Summary footer */
+    .summary-card{
+      margin-top:16px;
+      border-radius:18px;
+      background:#08080b;
+      border:1px solid #27272f;
+      padding:10px 16px;
+      font-size:12px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+    .summary-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .state-pill{
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      padding:4px 10px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .state-pill.ok{
+      border-color:var(--accent);
+      color:var(--accent);
+      background:#022c22;
+    }
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:4px;
+    }
+    .summary-label{color:#a1a1aa}
+    .summary-value{font-weight:500}
+    .summary-link{
+      font-size:11px;
+      color:#a1a1aa;
+      text-decoration:underline;
+    }
+
+    .help-line{
+      font-size:11px;
+      color:#71717a;
+      margin-top:4px;
+      text-align:center;
+    }
+
+    /* Special buttons */
+    #ethMinus:active,
+    #ethPlus:active{
+      background:var(--accent);
+      color:var(--accent-ink);
+      border-color:var(--accent);
+    }
+
+    /* Red reset */
+    #btnReset{
+      border:1px solid var(--danger);
+      color:var(--danger);
+      background:#101014;
+    }
+    #btnReset:hover,#btnReset:active{
+      background:var(--danger);
+      color:#020617;
+      border-color:var(--danger);
+    }
+@media(min-width:900px){
+  .card-title{font-size:20px;}
+  .stake-amount{font-size:40px;}
+  .stake-label{font-size:13px;}
+}
+    @media(max-width:640px){
+  .app{padding:14px 12px 28px}
+  .card{padding:16px}
+
+  .subchips{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  /* Join / Resolve buttons: 2 per row on phones */
+  .quick-row{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  /* Make the small header chips stack nicely */
+ .subchips .chip{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+    margin-bottom:6px;
+  }
+      
+  .subchips-left{
+    width:100%;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .quick-chip{
+    width:100%;
+    text-align:center;
+  }
+
+  .summary-card{font-size:11px}
+
+  .top-actions{
+    display:flex;
+    gap:10px;
+  }
+
+  /* contract pill — slightly smaller on phones */
+  .addr{
+    font-size:11px;
+    padding:6px 12px;
+  }
+
+  .stake-amount{
+    font-size:30px;
+    min-width:90px;
+  }
+}
+   /* Hide title + subtitle only on the Create Challenge panel */
+#panelCreate .card-header,
+#panelCreate .card-sub{
+  display:none;
+}
+/* Pot Value — light blue */
+#sbPotEth,
+#sbPotUsd{
+  color:#18DCF1;   /* light blue */
+}
+
+/* Winner Gets — green */
+#sbWinEth,
+#sbWinUsd{
+  color:#18DCF1;   /* success green */
+}
+/* Custom minutes box styled to match blue-outline design */
+.deadline-input{
+  border-radius:24px;
+  border:2px solid #18DCF1;   /* ✅ blue outline */
+  background:#101014;
+  color:#e4e4e7;
+  padding:12px 0;
+  font-size:13px;
+  text-align:center;
+}
+/* - / + controls beside the amount */
+.stake-adjust{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.adjust-btn{
+  border-radius:12px;
+  border:2px solid #18DCF1; /* blue outline */
+  background:#0b0b10;
+  color:#18DCF1;
+  font-size:18px;
+  width:38px;
+  height:28px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.adjust-btn:hover{
+  background:#18DCF1;
+  color:#0b0b10;
+}
+/* Larger preset amount buttons */
+.amount-row{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  margin:14px 0 20px;
+}
+
+.quick-amt{
+  flex:1;
+  min-width:0;
+  border-radius:20px;
+  border:1px solid #2a2a2f;
+  background:#1a1a1d;
+  padding:14px 0;
+  font-size:15px;
+  font-weight:500;
+  color:#e4e4e7;
+  text-align:center;
+  cursor:pointer;
+  transition:0.15s ease;
+}
+
+.quick-amt:hover{
+  background:#26262b;
+  border-color:#323238;
+}
+    /* -------- Site footer / legal links -------- */
+    .site-footer{
+      max-width:960px;
+      margin:18px auto 0;
+      padding:14px 20px 26px;
+      border-top:1px solid #27272f;
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .site-footer nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .site-footer a{
+      color:var(--muted);
+      text-decoration:none;
+    }
+    .site-footer a:hover{
+      text-decoration:underline;
+    }
+
+/* Simple footer */
+.site-footer{
+  max-width:960px;
+  margin:24px auto 0;
+  padding:12px 20px 24px;
+  font-size:11px;
+  color:var(--muted);
+  border-top:1px solid #27272f;
+}
+
+.site-footer-top{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.site-footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.site-footer a{
+  color:var(--muted);
+  text-decoration:none;
+}
+
+.site-footer a:hover{
+  text-decoration:underline;
+}
+
+@media(max-width:640px){
+  .site-footer{
+    padding:12px 12px 24px;
+  }
+}
+.help-line {
+  text-align: center !important;
+  width: 100%;
+}
+#resolveNote{
+  text-align: center;
+  font-size: 1.05rem;
+  opacity: 0.85;
+  margin: 14px 0 18px 0;
+}
+/* Active preset buttons – change blue outline to white */
+.pill.active,
+.option.active,
+.btn-pill.active {
+  border-color: #ffffff !important;
+  color: #ffffff;
+}
+  </style>
+
+  <!-- Libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="favicon.png" alt="The Juice logo" />
+      </div>
+      <span>The Juice</span>
+    </div>
+    <div class="top-actions">
+  <button id="btnSwitch" class="btn small ghost">Switch network</button>
+  <button id="btnConnect" class="btn small ghost" onclick="connect()">Connect Wallet</button>
+</div>
+  </header>
+
+  <div class="subbar">
+    <div id="addrPill" class="addr" title="Escrow contract address (locked)"></div>
+    <div class="subchips">
+      <div class="subchips-left">
+        <span id="chipNetwork" class="chip">Base • Mainnet • (8453)</span>
+        <span class="chip badge">Fee 2.5%</span>
+        <a
+  class="chip"
+  href="https://basescan.org/address/0x61eD264AAEF359717B2070E0426B26aa27D54890#code"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Verified contract ↗
+</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button id="tabCreate" class="tab active">Create Challenge</button>
+    <button id="tabJoin" class="tab">Join &amp; Resolve</button>
+  </div>
+
+<div class="help-line" style="margin-top:8px; max-width:520px; margin-left:auto; margin-right:auto;">
+  ⚠️ Base Mainnet — Real ETH. Start with small stakes.
+</div>
+
+  <!-- Create panel -->
+  <div id="panelCreate" class="panel active">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Create Challenge</div>
+      </div>
+
+      <div class="card-sub">Set the Challenge, deadlines, and fund the escrow in one step.</div>
+
+            <!-- Idea text bar with inline dice button -->
+      <div class="idea-row">
+        <input
+          id="ideaBox"
+          class="idea-input"
+          type="text"
+          value="Golf: Hole in one!"
+        />
+        <button id="btnShuffle" class="idea-dice" aria-label="Random bet idea">🎲</button>
+      </div>
+
+      <!-- Stake area -->
+      <div class="stake-area">
+        <div class="stake-label">I want to bet</div>
+        <div class="stake-main">
+           <span id="stakeSymbol" class="stake-symbol">$</span>
+          <input id="stakeMain" class="stake-amount" type="number" value="5" />
+
+          <div class="stake-adjust">
+            <button id="ethMinus" class="adjust-btn">−</button>
+            <button id="ethPlus" class="adjust-btn">+</button>
+          </div>
+          <div class="stake-toggle">
+            <button id="stakeModeEth">ETH</button>
+            <button id="stakeModeUsd" class="connected">USD</button>
+          </div>
+        </div>
+
+        <!-- hidden fields actually used by contract / logic -->
+        <input id="stakeEth" type="hidden" value="0.0014"/>
+        <input id="stakeUsd" type="hidden" value="5"/>
+
+        <div class="quick-row amount-row">
+          <button id="usd1" class="quick-amt">$1</button>
+          <button id="usd5" class="quick-amt">$5</button>
+          <button id="usd10" class="quick-amt">$10</button>
+          <button id="usd20" class="quick-amt">$20</button>
+        </div>
+      </div>
+
+      <!-- Join deadline -->
+      <div style="margin-top:14px">
+        <div class="label">Join deadline</div>
+        <div class="row wrap">
+          <div class="quick-row">
+            <button class="quick-chip" data-join="15">Quick (15m)</button>
+            <button class="quick-chip" data-join="60">1h</button>
+            <button class="quick-chip" data-join="1440">1 Day</button>
+            <input id="joinMins" class="input deadline-input" type="number" min="1" max="43200" value="15"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resolve deadline -->
+      <div style="margin-top:12px">
+        <div class="label">Resolve deadline</div>
+        <div class="row wrap">
+          <div class="quick-row">
+            <button class="quick-chip" data-resolve="30">+30m</button>
+            <button class="quick-chip" data-resolve="120">+2h</button>
+            <button class="quick-chip" data-resolve="2880">+2 Days</button>
+            <input id="resolveMins" class="input deadline-input" type="number" min="15" max="43200" value="30"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note" id="usdNote">USD values are estimates only.</div>
+
+      <!-- Actions -->
+      <div class="row" style="margin-top:16px;gap:10px">
+        <button id="btnCreate" class="btn accent" style="flex:1">Create &amp; Fund</button>
+        <button id="btnReset" class="btn" style="min-width:90px">Reset</button>
+      </div>
+
+      <div id="createStatus" class="status"></div>
+    </div>
+  </div>
+
+  <!-- Join / Resolve panel -->
+  <div id="panelJoin" class="panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="display:none;margin:0;padding:0;"></div>
+      </div>
+      <div id="resolveNote" class="card-sub">Paste a Challegne ID to join, refund, or finalize.</div>
+
+      <!-- Challenge ID -->
+      <div class="join-input-row row">
+        <input id="betId" class="input join-input" placeholder="Paste Challenge ID…" />
+        <button id="btnClearId" class="btn-clear">Clear</button>
+      </div>
+
+      <!-- Join / refund -->
+      <div class="stack" style="margin-top:8px">
+        <button id="btnJoin" class="btn primary" style="width:100%">Join Challenge</button>
+        <button id="btnRefund" class="btn ghost" style="width:100%">Request Refund</button>
+      </div>
+
+      <!-- Resolve winner -->
+      <div class="resolve-section">
+        <div class="resolve-title">Resolve winner</div>
+        <div class="resolve-sub">Both sides choose the winner. If they match, payout is automatic.</div>
+
+        <div class="vote-grid">
+          <div>
+            <div class="vote-column-title">I created this Challenge</div>
+            <div class="vote-buttons">
+              <button id="creatorWon" class="btn ghost">I Won</button>
+              <button id="creatorSaysOpponent" class="btn ghost">Opponent Won</button>
+            </div>
+          </div>
+          <div>
+            <div class="vote-column-title">I joined this Challenge</div>
+            <div class="vote-buttons">
+              <button id="opponentSaysCreator" class="btn ghost">Creator Won</button>
+              <button id="opponentWon" class="btn ghost">I Won</button>
+            </div>
+          </div>
+        </div>
+
+        <button id="btnPayout" class="btn accent" style="width:100%;margin-top:6px">
+          Finalize &amp; Payout
+        </button>
+      </div>
+
+      <div id="actionStatus" class="status"></div>
+      <div id="newBetNote" class="status" style="text-align:center;display:none">🆕 New Challenge link prepared — share the QR!
+      </div>
+    </div>
+    
+    <!-- Share / QR -->
+    <div class="share-card">
+      <div class="share-title">Share link &amp; QR</div>
+      <div class="share-help">Send this link or QR to your opponent so they open the exact Challenge</div>
+
+      <div class="qr-row">
+        <div class="row wrap" style="flex:1; min-width:260px">
+          <button id="btnCopy" class="btn small ghost">Copy link</button>
+          <input id="shareUrl" class="input" style="flex:1" readonly/>
+        </div>
+
+        <div class="qr-box" id="qrBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary footer -->
+  <div class="summary-card">
+    <div class="summary-top">
+      <div id="sbState" class="state-pill">Not connected</div>
+      <div class="chip">Base • Mainnet • (8453)</div>
+    </div>
+
+    <div class="summary-row">
+      <span class="summary-label">Pot value</span>
+      <span class="summary-value"><span id="sbPotEth">0.0000</span> ETH (<span id="sbPotUsd">$0.00</span>)</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Winner gets</span>
+      <span class="summary-value"><span id="sbWinEth">0.0000</span> ETH (<span id="sbWinUsd">$0.00</span>)</span>
+    </div>
+
+    <div class="summary-row" style="margin-top:6px">
+      <span class="summary-label">Last transaction</span>
+      <a id="lastTx" class="summary-link" href="#" target="_blank" rel="noopener">View on Basescan</a>
+    </div>
+
+    <div class="help-line">Refunds are fee-free if deadlines pass.</div>
+  </div>
+</div>
+
+  <footer class="site-footer">
+    <span>© 2025 Edison Labs LLC • Experimental software. Use at your own risk.</span>
+    <nav>
+      <a href="about.html">About</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="risk.html">Risk Disclosure</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+  </footer>
+  
+<!-- Logic -->
+<script>
+/* ---------- Config ---------- */
+const BASE = { idHex: '0x2105', rpc: 'https://mainnet.base.org', explorer: 'https://basescan.org' };
+const FEE_BPS = 250;        // fixed 2.5%
+let   ETH_USD = 3500;       // preview only
+  async function refreshEthUsd(){
+  // Try to update ETH_USD using a public spot price
+  try{
+    const res = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
+    const data = await res.json();
+    const price = parseFloat(data?.data?.amount);
+
+    if (!isNaN(price) && price > 0){
+      ETH_USD = price;
+
+      const note = $('usdNote');
+      if (note){
+        note.textContent = `USD values use ETH ≈ $${price.toFixed(2)} (preview only).`;
+      }
+
+      // Recompute pot / winner using the new rate
+      updatePreview();
+      return;
+    }
+  }catch(e){
+    // fall through to stale warning
+  }
+
+  const note = $('usdNote');
+  if (note){
+    note.textContent = 'USD values are estimates only and may be outdated.';
+  }
+}
+const CONTRACT_ADDRESS = '0x61eD264AAEF359717B2070E0426B26aa27D54890';
+
+/* ---------- Shortcuts ---------- */
+const $  = id => document.getElementById(id);
+const fmtUsd = v => '$' + v.toFixed(2);
+
+/* ---------- Fill header contract pill ---------- */
+$('addrPill').textContent = `Contract: ${CONTRACT_ADDRESS}`;
+
+/* ---------- QR + share helpers ---------- */
+function currentShareUrl() {
+  const betIdRaw = String(($('betId')?.value || '')).trim();
+  const ideaRaw  = String(($('ideaBox')?.value || '')).trim();
+
+  try{
+    const u = new URL(location.href);
+
+    // Only include bet= if the ID is a pure number
+    if (/^\d+$/.test(betIdRaw)) {
+      u.searchParams.set('bet', betIdRaw);
+    } else {
+      u.searchParams.delete('bet');
+    }
+
+    // Include idea text for context (off-chain only)
+    if (ideaRaw) {
+      u.searchParams.set('idea', ideaRaw);
+    } else {
+      u.searchParams.delete('idea');
+    }
+
+    return u.toString();
+  }catch{
+    return location.href;
+  }
+}
+
+let qr = null;
+function renderQR(){
+  const node = $('qrBox');
+  if (!node) return;
+  node.innerHTML = '';
+  qr = new QRCode(node,{
+    text: currentShareUrl(),
+    width: 140,
+    height:140,
+    colorDark:'#ffffff',
+    colorLight:'#0b0b10',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+function setCopyPulse(el){
+  el.classList.add('connected');
+  setTimeout(()=>el.classList.remove('connected'), 800);
+}
+
+/* ---------- USD/ETH preview ---------- */
+function updatePreview(){
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+  const pot = eth * 2;
+  const win = pot * (1 - FEE_BPS/10000);
+
+  const potEthEl = $('sbPotEth');
+  if (potEthEl) potEthEl.textContent = pot.toFixed(4);
+
+  const potUsdEl = $('sbPotUsd');
+  if (potUsdEl) potUsdEl.textContent = fmtUsd(pot * ETH_USD);
+
+  const winEthEl = $('sbWinEth');
+  if (winEthEl) winEthEl.textContent = win.toFixed(4);
+
+  const winUsdEl = $('sbWinUsd');
+  if (winUsdEl) winUsdEl.textContent = fmtUsd(win * ETH_USD);
+}
+
+/* Hidden fields kept in ETH and USD */
+function applyStakeFromEth(rawEth){
+  const eth = Math.max(0, Number(rawEth) || 0);
+  $('stakeEth').value = eth.toFixed(4);
+  $('stakeUsd').value = (eth * ETH_USD).toFixed(0);
+
+  if (stakeMode === 'ETH'){
+    $('stakeMain').value = eth.toFixed(4);
+  }else{
+    $('stakeMain').value = (eth * ETH_USD).toFixed(0);
+  }
+  updatePreview();
+}
+
+/* Single stake box + mode toggle */
+let stakeMode = 'USD'; // default: show USD in big box
+
+function handleStakeMainInput(){
+  const raw = String($('stakeMain').value || '').trim();
+  const num = Number(raw);
+
+  // If user cleared the box or typed junk, just zero out preview and bail
+  if (!Number.isFinite(num) || num <= 0){
+    $('stakeEth').value = '0';
+    $('stakeUsd').value = '0';
+    updatePreview();
+    return;
+  }
+
+  if (stakeMode === 'ETH'){
+    applyStakeFromEth(num);
+  }else{
+    const eth = num / ETH_USD;
+    applyStakeFromEth(eth);
+  }
+}
+function setStakeMode(mode){
+  if (mode !== 'ETH' && mode !== 'USD') return;
+  stakeMode = mode;
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+
+  $('stakeModeEth').classList.toggle('connected', mode === 'ETH');
+  $('stakeModeUsd').classList.toggle('connected', mode === 'USD');
+
+  // Update the currency symbol: Ξ for ETH, $ for USD
+  const sym = $('stakeSymbol');
+  if (sym){
+    sym.textContent = (mode === 'ETH') ? 'Ξ' : '$';
+  }
+
+  if (mode === 'ETH'){
+    $('stakeMain').step = '0.0001';
+    $('stakeMain').value = eth.toFixed(4);
+  }else{
+    $('stakeMain').step = '1';
+    $('stakeMain').value = (eth * ETH_USD).toFixed(0);
+  }
+}
+
+/* ---------- Wallet / ethers ---------- */
+let provider, signer;
+const ABI = [
+  {
+    type:'function',
+    stateMutability:'payable',
+    name:'openChallenge',
+    inputs:[
+      {name:'stakeWei',            type:'uint256'},
+      {name:'feeBps',              type:'uint16'},
+      {name:'joinWindowSeconds',   type:'uint64'},
+      {name:'resolveWindowSeconds',type:'uint64'}
+    ],
+    outputs:[{name:'challengeId', type:'uint256'}]
+  },
+  {
+    type:'function',
+    stateMutability:'payable',
+    name:'joinChallenge',
+    inputs:[{name:'challengeId', type:'uint256'}],
+    outputs:[]
+  },
+  {
+    type:'function',
+    stateMutability:'nonpayable',
+    name:'submitOutcomeVote',
+    inputs:[
+      {name:'challengeId',      type:'uint256'},
+      {name:'challengerOutcome',type:'bool'}
+    ],
+    outputs:[]
+  },
+  {
+    type:'function',
+    stateMutability:'nonpayable',
+    name:'resolveChallenge',
+    inputs:[{name:'challengeId', type:'uint256'}],
+    outputs:[]
+  },
+  {
+    type:'function',
+    stateMutability:'nonpayable',
+    name:'issueRefund',
+    inputs:[{name:'challengeId', type:'uint256'}],
+    outputs:[]
+  },
+  {
+    type:'function',
+    stateMutability:'view',
+    name:'getChallenge',
+    inputs:[{name:'challengeId', type:'uint256'}],
+    outputs:[
+      {type:'address'},
+      {type:'address'},
+      {type:'uint256'},
+      {type:'uint16'},
+      {type:'uint64'},
+      {type:'uint64'},
+      {type:'uint64'},
+      {type:'uint8'},
+      {type:'int8'},
+      {type:'int8'}
+    ]
+  },
+  {
+    type:'function',
+    stateMutability:'view',
+    name:'nextChallengeId',
+    inputs:[],
+    outputs:[{type:'uint256'}]
+  }
+];
+// Pick a real provider (handles Brave / multiple wallets)
+function getEth(){
+  const eth = window.ethereum;
+  if (!eth) return null;
+
+  if (eth.providers && eth.providers.length){
+    // Prefer MetaMask if available, otherwise first provider
+    const mm = eth.providers.find(p => p.isMetaMask);
+    return mm || eth.providers[0];
+  }
+
+  return eth;
+}
+
+async function ensureBase(){
+  const eth = getEth();
+  if (!eth){
+    alert('Wallet not found (MetaMask / Coinbase / Brave).');
+    throw new Error('no wallet');
+  }
+
+  const chain = await eth.request({ method:'eth_chainId' });
+  if (chain !== BASE.idHex){
+    try{
+      await eth.request({
+        method:'wallet_switchEthereumChain',
+        params:[{ chainId: BASE.idHex }]
+      });
+    }catch(e){
+      if (e.code === 4902){
+        await eth.request({
+          method:'wallet_addEthereumChain',
+          params:[{
+            chainId: BASE.idHex,
+            chainName:'Base Mainnet',
+            nativeCurrency:{ name:'ETH', symbol:'ETH', decimals:18 },
+            rpcUrls:[BASE.rpc],
+            blockExplorerUrls:[BASE.explorer]
+          }]
+        });
+      }else{
+        console.error('ensureBase() failed', e);
+        throw e;
+      }
+    }
+  }
+}
+
+async function connect(){
+  try{
+    await ensureBase();
+
+    const eth = getEth();
+    if (!eth){
+      alert('Wallet not found (MetaMask / Coinbase / Brave).');
+      throw new Error('no wallet');
+    }
+
+    // IMPORTANT: this forces provider selection + domain permission
+    await eth.request({ method:'eth_requestAccounts' });
+
+    provider = new ethers.BrowserProvider(eth);
+    signer = await provider.getSigner();
+
+    $('sbState').textContent = 'Connected';
+    const netChip = $('chipNetwork');
+    if (netChip) netChip.classList.add('badge');
+    $('sbState').classList.add('ok');
+    $('btnConnect').classList.add('connected');
+  }catch(e){
+    console.error('connect() failed', e);
+    $('sbState').textContent = 'Not connected';
+    $('sbState').classList.remove('ok');
+  }
+}
+function getContract(){
+  if (!signer) throw new Error('Connect your wallet first.');
+  return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+}
+function requireBetId(){
+  const raw = String(($('betId').value || '').trim());
+  if (!raw) throw new Error('Enter a bet ID first.');
+  if (!/^\d+$/.test(raw)) throw new Error('Bet ID must be a number.');
+  return BigInt(raw);
+}
+
+/* ---------- Actions ---------- */
+async function doCreate(){
+  $('createStatus').textContent = 'Sending…';
+  try{
+    await ensureBase();
+    if (!signer) await connect();
+    const c = getContract();
+
+    const stakeEthStr = String($('stakeEth').value || '0');
+    const stakeEthNum = Number(stakeEthStr);
+
+    if (!Number.isFinite(stakeEthNum) || stakeEthNum <= 0){
+      throw new Error('Stake must be greater than zero.');
+    }
+
+    // Clamp inputs to allowed ranges
+    let jm = Math.max(5,  Math.min(43200, parseInt($('joinMins').value || '15', 10)));
+    let rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
+
+    // Enforce resolve > join to match contract expectations
+    if (rm <= jm){
+      throw new Error('Resolve deadline must be greater than join deadline.');
+    }
+
+    $('joinMins').value    = jm;
+    $('resolveMins').value = rm;
+
+    const stakeWei = ethers.parseEther(stakeEthNum.toFixed(4));
+
+    const tx = await c.openChallenge(
+    stakeWei,
+    FEE_BPS,
+    BigInt(jm * 60),
+    BigInt(rm * 60),
+    { value: stakeWei }
+  );
+
+    $('createStatus').textContent = 'Pending ' + tx.hash;
+
+    const rc = await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('createStatus').textContent = '✅ Bet created';
+
+    const nextId = await c.nextChallengeId();
+    const betId = (BigInt(nextId) - 1n).toString();
+    $('betId').value = betId;
+    $('shareUrl').value = currentShareUrl();
+    renderQR();
+    $('newBetNote').style.display = 'block';
+
+    // Auto-switch to Join & Resolve tab after Challenge is created
+    const tabJoin = $('tabJoin');
+    if (tabJoin) tabJoin.click();
+  }catch(e){
+    console.error('createBet error',e);
+    $('createStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function doJoin(){
+  $('actionStatus').textContent = 'Sending…';
+  try{
+    await ensureBase();
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = requireBetId();
+    const b = await c.getChallenge(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+    if (b[1] !== ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet already has an opponent';
+      return;
+    }
+
+    const state = Number(b[7]);      // 0 = Open, 1 = Live, ...
+    if (state !== 0){
+      $('actionStatus').textContent = '❌ Bet is no longer open to join';
+      return;
+    }
+
+    const joinDeadline = Number(b[4]); // unix seconds
+    const now = Math.floor(Date.now()/1000);
+    if (now > joinDeadline){
+      $('actionStatus').textContent = '❌ Join deadline has passed';
+      return;
+    }
+
+    const stakeWei = b[2];
+    const tx = await c.joinChallenge(betId,{ value: stakeWei });
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Joined bet #' + betId;
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function doVote(creatorWon){
+  $('actionStatus').textContent = 'Sending…';
+  try{
+    await ensureBase();
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = requireBetId();
+    const b = await c.getChallenge(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+    const state = Number(b[7]);
+if (state !== 1){
+  $('actionStatus').textContent = '❌ Voting not available';
+  return;
+}
+
+const user = await signer.getAddress();
+if (user !== b[0] && user !== b[1]){
+  $('actionStatus').textContent = '❌ You are not part of this bet';
+  return;
+}
+
+const creatorVote  = Number(b[8]);
+const opponentVote = Number(b[9]);
+
+if ((user === b[0] && creatorVote !== -1) || (user === b[1] && opponentVote !== -1)){
+  $('actionStatus').textContent = '✅ Vote already submitted';
+  return;
+}
+
+    const tx = await c.submitOutcomeVote(betId, Boolean(creatorWon));
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Vote submitted';
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function doRefund(){
+  $('actionStatus').textContent = 'Sending…';
+  try{
+    await ensureBase();
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = requireBetId();
+    const b = await c.getChallenge(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+
+    const state          = Number(b[7]);   // enum
+    const joinDeadline   = Number(b[4]);
+    const resolveDeadline= Number(b[5]);
+    const creatorVote    = Number(b[8]);
+    const opponentVote   = Number(b[9]);
+    const now            = Math.floor(Date.now()/1000);
+
+    // Case A: creator refund if no opponent joined and join deadline passed
+    const noOpponent = (b[1] === ethers.ZeroAddress);
+    const canSoloRefund = (state === 0 && noOpponent && now > joinDeadline);
+
+    // Case B: both voted but disagree after resolve deadline
+    const votesSet   = (creatorVote !== -1 && opponentVote !== -1);
+    const votesMismatch = votesSet && (creatorVote !== opponentVote);
+    const canSplitRefund = (state === 1 && votesMismatch && now > resolveDeadline);
+
+    if (!canSoloRefund && !canSplitRefund){
+      $('actionStatus').textContent = '❌ Refund not available yet for this bet';
+      return;
+    }
+
+    const tx = await c.issueRefund(betId);
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Refund sent';
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+async function doPayout(){
+  $('actionStatus').textContent = 'Sending…';
+  try{
+    await ensureBase();
+    if (!signer) await connect();
+    const c = getContract();
+    const betId = requireBetId();
+    const b = await c.getChallenge(betId);
+
+    if (b[0] === ethers.ZeroAddress){
+      $('actionStatus').textContent = '❌ Bet not found';
+      return;
+    }
+
+    const state        = Number(b[7]); // Live?
+    const creatorVote  = Number(b[8]);
+    const opponentVote = Number(b[9]);
+
+    if (state !== 1){
+      $('actionStatus').textContent = '❌ Bet is not in a resolvable state';
+      return;
+    }
+
+    const votesSet   = (creatorVote !== -1 && opponentVote !== -1);
+    const votesMatch = votesSet && (creatorVote === opponentVote);
+
+    if (!votesMatch){
+      $('actionStatus').textContent = '❌ Both sides must vote and agree before payout';
+      return;
+    }
+
+    const tx = await c.resolveChallenge(betId);
+    await tx.wait();
+    $('lastTx').href = `${BASE.explorer}/tx/${tx.hash}`;
+    $('actionStatus').textContent = '✅ Payout finalized';
+  }catch(e){
+    $('actionStatus').textContent = '❌ ' + (e?.shortMessage||e?.message||e);
+  }
+}
+
+/* ---------- Bet Ideas ---------- */
+const IDEAS = [
+  "Make a 3-point shot from the top of the key",
+  "Darts: Hit any double in 3 throws",
+  "Darts: You vs Me",
+  "Darts: Bullzeye",
+  "Drink: Chug under 1 minute",
+  "Hockey🥅: Hit the crossbar",
+  "Lacrosse🥍: Top right corner",
+  "Human: No way!",
+  "Human: I challenge you can't",
+  "Cornhole: 2 in a row",
+  "Bottle Flip: 3 out of 5",
+  "Soccer⚽️: Crossbar in 3 tries",
+  "Golf⛳️: Hole in one!",
+  "Golf⛳️: 3-putt?",
+  "Golf⛳️: 2-putt or better",
+  "Golf⛳️: Green-in-regulation?",
+  "Golf⛳️: Fairway off the tee",
+  "Gaming: 1 v 1",
+  "Speed: I'll beat you there",
+  "Pool🎱: You vs Me",
+  "Pool🎱: Bank shot within 2 tries",
+  "Golf⛳️: Closest-to-the-pin",
+  "Golf⛳️: On the green?",
+  "Golf⛳️: Low score",
+  "Golf⛳️: Match Play",
+  "Ping pong🏓: Serve an ace in 5 serves"
+];
+function shuffleIdea(){
+  $('ideaBox').value = IDEAS[Math.floor(Math.random()*IDEAS.length)];
+}
+
+/* ---------- New challenge link ---------- */
+function startNewBet(){
+  $('betId').value = '';
+
+  // Reset statuses
+  if ($('createStatus')) $('createStatus').textContent = '';
+  if ($('actionStatus')) $('actionStatus').textContent = '';
+  $('newBetNote').style.display = 'none';
+
+  // Reset share URL back to the base page URL with no bet param
+  const url = currentShareUrl();
+  $('shareUrl').value = url;
+
+  // Re-render QR for the base URL
+  renderQR();
+}
+
+/* ---------- Wire UI ---------- */
+window.addEventListener('DOMContentLoaded', ()=>{
+  // stake defaults (start from ETH value, show USD)
+  applyStakeFromEth(0.0014);
+  setStakeMode('USD');
+  $('stakeMain').addEventListener('input', handleStakeMainInput);
+
+  // Try to refresh ETH/USD preview rate
+  refreshEthUsd();
+
+  // Mode toggle
+  $('stakeModeEth').onclick = ()=> setStakeMode('ETH');
+  $('stakeModeUsd').onclick = ()=> setStakeMode('USD');
+
+  // Quick USD buttons
+  $('usd1').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 1;  handleStakeMainInput(); };
+  $('usd5').onclick  = ()=>{ setStakeMode('USD'); $('stakeMain').value = 5;  handleStakeMainInput(); };
+  $('usd10').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 10; handleStakeMainInput(); };
+  $('usd20').onclick = ()=>{ setStakeMode('USD'); $('stakeMain').value = 20; handleStakeMainInput(); };
+
+    // +/- controls: step in ETH when in ETH mode, $1 when in USD mode
+  $('ethPlus').onclick = ()=>{
+    if (stakeMode === 'ETH'){
+      const v = Math.max(0, parseFloat($('stakeEth').value || '0') + 0.0001);
+      applyStakeFromEth(v);
+    } else {
+      const usd = (Number($('stakeMain').value) || 0) + 1;
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
+  };
+  $('ethMinus').onclick = ()=>{
+    if (stakeMode === 'ETH'){
+      const v = Math.max(0, parseFloat($('stakeEth').value || '0') - 0.0001);
+      applyStakeFromEth(v);
+    } else {
+      const usd = Math.max(0, (Number($('stakeMain').value) || 0) - 1);
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
+  };
+
+  // Quick deadline chips
+  document.querySelectorAll('[data-join]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $('joinMins').value = btn.getAttribute('data-join');
+    });
+  });
+  document.querySelectorAll('[data-resolve]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $('resolveMins').value = btn.getAttribute('data-resolve');
+    });
+  });
+
+  // QR + share
+  renderQR();
+  $('betId').addEventListener('input', ()=>{
+    $('shareUrl').value = currentShareUrl();
+    renderQR();
+  });
+  $('shareUrl').value = currentShareUrl();
+    $('btnCopy').onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText($('shareUrl').value);
+      setCopyPulse($('btnCopy'));
+    }catch(e){
+      alert('Could not copy link. You can still select the text and copy it manually.');
+    }
+  };
+
+  // Connect / switch / new challenge
+  $('btnConnect').onclick = connect;
+  $('btnSwitch').onclick = async ()=>{
+    try{
+      await ensureBase();
+      $('btnSwitch').classList.add('connected');
+    }catch{}
+  };
+
+  const newBetBtn = $('btnNewBet');
+  if (newBetBtn) {
+    newBetBtn.onclick = () => {
+      startNewBet();
+      newBetBtn.classList.add('connected');
+    };
+  }
+
+  // Actions
+  $('btnCreate').onclick = doCreate;
+  $('btnReset').onclick  = ()=>{
+    $('joinMins').value = '15';
+    $('resolveMins').value = '30';
+    applyStakeFromEth(0.0014);
+    startNewBet();
+  };
+  $('btnJoin').onclick    = doJoin;
+  $('btnRefund').onclick  = doRefund;
+  $('creatorWon').onclick = ()=>doVote(true);
+  $('creatorSaysOpponent').onclick = ()=>doVote(false);
+  $('opponentSaysCreator').onclick = ()=>doVote(true);
+  $('opponentWon').onclick = ()=>doVote(false);
+  $('btnPayout').onclick  = doPayout;
+
+  // Shuffle ideas
+  $('btnShuffle').onclick = shuffleIdea;
+
+  // Clear challenge ID button
+  $('btnClearId').onclick = ()=>{
+    startNewBet();
+    $('betId').value = '';
+  };
+
+  // Tabs
+  const tabCreate   = $('tabCreate');
+  const tabJoin     = $('tabJoin');
+  const panelCreate = $('panelCreate');
+  const panelJoin   = $('panelJoin');
+
+    tabCreate.onclick = ()=>{
+    tabCreate.classList.add('active');
+    tabJoin.classList.remove('active');
+    panelCreate.classList.add('active');
+    panelJoin.classList.remove('active');
+
+    if ($('actionStatus')) $('actionStatus').textContent = '';
+  };
+  tabJoin.onclick = ()=>{
+    tabJoin.classList.add('active');
+    tabCreate.classList.remove('active');
+    panelJoin.classList.add('active');
+    panelCreate.classList.remove('active');
+
+    if ($('createStatus')) $('createStatus').textContent = '';
+  };
+
+  // Read ?bet= on load
+    const p = new URLSearchParams(location.search);
+  const b = p.get('bet');
+  if (b){
+    $('betId').value = b;
+    $('shareUrl').value = currentShareUrl();
+    renderQR();
+  }
+
+  const ideaParam = p.get('idea');
+  if (ideaParam){
+    $('ideaBox').value = ideaParam;
+  }
+
+  // Initial preview
+  updatePreview();
+    // React to wallet chain/account changes: force a clean reconnect
+  if (window.ethereum){
+    window.ethereum.on?.('chainChanged', ()=>{
+      signer = null;
+      $('sbState').textContent = 'Network changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+    window.ethereum.on?.('accountsChanged', ()=>{
+      signer = null;
+      $('sbState').textContent = 'Account changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+  }
+});
+</script>
+</body>
+</html>
