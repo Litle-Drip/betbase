@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>The Juice — Access</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="color-scheme" content="dark">
+  <style>
+    :root{
+  --bg0:#0b1220;
+  --bg1:#0a0f1a;
+  --card:#0f172a;
+  --muted:#94a3b8;
+  --text:#e5e7eb;
+  --accent:#06b6d4; /* cyan-500-ish */
+  --accent-2:#22c55e; /* green-500-ish */
+  --border:#1f2a44;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --radius:18px;
+}
+
+/* Base layout */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100svh;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 800px at 10% 10%, rgba(0,230,246,.12), transparent 40%),
+    radial-gradient(1000px 700px at 90% 0%, rgba(255,215,0,.08), transparent 45%),
+    linear-gradient(180deg,var(--bg0),var(--bg1));
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+}
+
+.wrap{
+  max-width: clamp(820px, 88vw, 1200px);
+  margin: clamp(24px, 5vh, 56px) auto;
+  padding: 0 clamp(14px, 2.2vw, 28px);
+}
+
+.panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
+  border:1px solid var(--border);
+  border-radius: clamp(16px, 2.2vw, 26px);
+  box-shadow:var(--shadow);
+  padding: clamp(20px, 3.2vw, 44px) clamp(18px, 3vw, 40px);
+  text-align:center;
+}
+
+/* Type scales with viewport */
+h1{
+  margin:12px 0 8px;
+  font-weight:800;
+  letter-spacing:.2px;
+  font-size: clamp(22px, 3.2vw, 36px);
+  line-height: 1.15;
+}
+.tagline{
+  color:var(--muted);
+  font-size: clamp(.9rem, 1.4vw, 1.05rem);
+  margin-top: 2px;
+}
+
+/* Countdown tiles — responsive size & wrapping */
+.digits{
+  display:flex;
+  flex-wrap: wrap;               /* allow wrapping on small screens */
+  gap: clamp(10px, 1.6vw, 18px);
+  justify-content:center;
+  margin: clamp(18px, 3vw, 26px) 0 clamp(12px, 2vw, 18px);
+}
+.digit{
+  flex: 0 1 auto;
+  width: clamp(120px, 18vw, 170px);
+  padding: clamp(12px, 1.6vw, 16px) 0;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.22);
+}
+.digit b{
+  display:block;
+  font-size: clamp(28px, 4.4vw, 48px);
+  letter-spacing:.5px
+}
+.digit span{
+  display:block;
+  color:var(--muted);
+  font-size: clamp(.72rem, 1.2vw, .9rem);
+  margin-top:4px
+}
+
+/* Primary button */
+.btn{
+  appearance:none;border:0;cursor:pointer;background:var(--accent);color:white;font-weight:700;
+  border-radius:12px;
+  padding: clamp(12px, 1.6vw, 14px) clamp(16px, 2vw, 20px);
+  min-width: clamp(180px, 28vw, 260px);
+  font-size: clamp(.95rem, 1.6vw, 1.05rem);
+  box-shadow:0 6px 18px rgba(6,182,212,.35);
+  transition:transform .08s ease, filter .2s ease, opacity .2s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+
+/* Small caption under button */
+.subtle{color:var(--muted);font-size: clamp(.85rem, 1.4vw, .95rem);margin-top:14px}
+
+/* ===== Modal ===== */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;
+  padding: clamp(12px, 2vw, 18px);z-index:40;
+}
+.overlay.show{display:flex}
+.modal{
+  width: min(640px, 92vw);                   /* a bit wider on desktop */
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.025));
+  border:1px solid var(--border);
+  border-radius: clamp(18px, 2.2vw, 22px);
+  padding: clamp(18px, 2.4vw, 24px) clamp(16px, 2.2vw, 20px) clamp(14px, 2vw, 18px);
+  box-shadow:var(--shadow);
+  text-align:left;
+}
+.row{display:flex;gap:12px;align-items:center;margin-top:14px}
+label{font-size:.9rem;color:var(--muted)}
+input[type=text] {
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.14);
+  outline: none;
+  font-weight: 700;
+  letter-spacing: .5px;
+  font-size: 1.25rem; /* ⬅️ Bigger text (was around 1rem) */
+}
+input[type=text]::placeholder{color:#9fb2c6;font-weight:600;letter-spacing:.2px}
+.modal .btn{min-width:140px}
+.ok{color:var(--accent-2);font-weight:700}
+.warn{color:#fca5a5;font-weight:700}
+.foot{
+  display:flex;justify-content:space-between;gap:12px;
+  color:var(--muted);font-size:.85rem;margin-top:18px;flex-wrap:wrap
+}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;padding:8px 12px;color:var(--muted);
+}
+.small{font-size:.85rem}
+
+/* Phone niceties */
+@media (max-width: 640px){
+  .btn{min-width:unset;width:100%}
+  .foot{justify-content:center}
+}
+
+/* Very small screens: make the 4 tiles into a 2x2 grid */
+@media (max-width: 420px){
+  .digits{gap:10px}
+  .digit{width: calc(50% - 10px)}
+}
+
+/* Big desktops: give more breathing room and scale up tiles slightly */
+@media (min-width: 1280px){
+  .wrap{max-width: 1240px}
+  .digits{gap: 20px}
+  .digit{width: clamp(160px, 14vw, 200px)}
+  .panel{padding: 48px}
+}
+
+/* Hide background scroll when modal open (your JS toggles this class) */
+body.modal-open{overflow:hidden}
+    .modal {
+  font-size: 1.1rem; /* Slightly larger modal text */
+}
+.modal .btn {
+  font-size: 1.05rem;
+  padding: 16px 20px;
+}
+    /* --- Better readability inside Access Console modal --- */
+
+.modal {
+  font-size: 1.1rem;
+  color: var(--text); /* ensures main text is bright */
+}
+
+/* Bigger input font */
+.modal input[type=text] {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Brighter placeholder */
+.modal input[type=text]::placeholder {
+  color: #c7d2e0; /* brighter gray-blue for readability */
+}
+
+/* Hint text (the small one under title) */
+.modal p.small {
+  color: #b5c3d1 !important; /* slightly brighter muted tone */
+  font-size: 0.95rem;
+}
+
+/* Footer text (“for vibes only…”) */
+.modal .foot span {
+  color: #b8c6d4 !important;
+  font-size: 0.9rem;
+}
+
+/* Optional: give “Access Console” tag a glow for style */
+.modal .pill {
+  color: #e5e7eb;
+  border-color: rgba(255,255,255,.2);
+  box-shadow: 0 0 8px rgba(6,182,212,.2);
+}
+    /* Lock background visually and boost contrast on mobile */
+.overlay{
+  background: rgba(7,10,18,.68);                /* darker */
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  z-index: 9999;                                 /* above everything */
+}
+
+/* Modal sizing + scrolling safety */
+.modal{
+  width: min(640px, 92vw);
+  max-height: 80svh;                             /* keep on screen */
+  overflow: auto;                                /* scroll inside if needed */
+}
+
+/* Prevent background scroll on iOS */
+body.modal-open{
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Input/Button readability and stacking on small phones */
+@media (max-width: 480px){
+  .modal h2{ font-size: 1.5rem; line-height: 1.2; }
+  .row{ flex-direction: column; align-items: stretch; gap: 10px; }
+  .modal .btn{ width: 100%; }
+  .modal input[type=text]{ font-size: 18px; }     /* >=16px avoids iOS zoom */
+  .modal p.small, .modal .foot span{ font-size: 1rem; }
+}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel" role="region" aria-labelledby="heroTitle">
+      <div class="pill small">The first ever bet on The Juice… was The Juice itself</div>
+      <h1 id="heroTitle">Will The Juice launch before Dec 31, 2025?</h1>
+      <div class="tagline">No bookie. Just code. (Pre-launch access console)</div>
+
+      <div class="digits" id="count" aria-live="polite">
+        <div class="digit"><b id="d">–</b><span>Days</span></div>
+        <div class="digit"><b id="h">–</b><span>Hours</span></div>
+        <div class="digit"><b id="m">–</b><span>Minutes</span></div>
+        <div class="digit"><b id="s">–</b><span>Seconds</span></div>
+      </div>
+
+      <button class="btn" id="open" aria-haspopup="dialog">REQUEST ACCESS</button>
+      <div class="subtle" id="geo">Accessing from: …</div>
+
+      <noscript>
+        <p class="subtle" style="margin-top:12px">
+          JavaScript is off — <a href="index.html" style="color:#a5f3fc">continue to the site</a>.
+        </p>
+      </noscript>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <div class="pill small">Access Console</div>
+      <h2 id="modalTitle" style="margin:10px 0 6px">Enter Access Code (optional)</h2>
+      <p id="modalDesc" class="small" style="margin:0 0 10px;color:var(--muted)">Hint: you don’t need one.</p>
+
+      <div class="row">
+        <input id="code" type="text" placeholder="ACCESS CODE (optional)" autocomplete="off" />
+        <button class="btn" id="submit">Submit</button>
+      </div>
+
+      <p id="status" class="small" style="min-height:24px;margin-top:12px;"></p>
+
+      <div class="foot">
+        <span class="small">This screen is for vibes only.</span>
+        <span class="small">You’ll be redirected to the live page after access is granted.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Utilities =====
+    const sameDirHref = (file) => new URL(file, window.location.href).href;
+    const REDIRECT_TO = sameDirHref('index.html'); // safe for GitHub Pages subpaths
+
+    // ===== Countdown (to Dec 31, 2025 23:59:59 local) =====
+    (function(){
+      const end = new Date('2025-12-31T23:59:59').getTime();
+      const ids = {d: 'd', h: 'h', m: 'm', s: 's'};
+      const btn = document.getElementById('open');
+
+      function tick(){
+        const now = Date.now();
+        let diff = Math.max(0, end - now);
+        const d = Math.floor(diff / 86400000); diff %= 86400000;
+        const h = Math.floor(diff / 3600000);  diff %= 3600000;
+        const m = Math.floor(diff / 60000);    diff %= 60000;
+        const s = Math.floor(diff / 1000);
+
+        document.getElementById(ids.d).textContent = d;
+        document.getElementById(ids.h).textContent = h;
+        document.getElementById(ids.m).textContent = m;
+        document.getElementById(ids.s).textContent = s;
+
+        // When countdown hits zero, switch to "Launch Now"
+        if ((end - now) <= 0) {
+          btn.textContent = 'LAUNCH NOW';
+          btn.onclick = () => window.location.href = REDIRECT_TO;
+          btn.setAttribute('aria-label', 'Launch Now');
+        }
+      }
+      tick(); setInterval(tick, 1000);
+    })();
+
+    // ===== Location (best effort, soft-fail) =====
+    (async function showGeo(){
+      const el = document.getElementById('geo');
+      try{
+        const ctl = new AbortController();
+        const timeout = setTimeout(()=>ctl.abort(), 2000);
+        const r = await fetch('https://ipapi.co/json/', {signal: ctl.signal});
+        clearTimeout(timeout);
+        if(!r.ok) throw new Error('geo fail');
+        const j = await r.json();
+        const city = j.city || 'your area', region = j.region || j.country || '';
+        el.textContent = `Accessing from: ${city}${region ? ', ' + region : ''}`;
+      }catch{
+        el.textContent = 'Accessing from: your area';
+      }
+    })();
+
+    // ===== Modal + Access Flow =====
+    const overlay = document.getElementById('overlay');
+    const openBtn  = document.getElementById('open');
+    const code     = document.getElementById('code');
+    const status   = document.getElementById('status');
+    const submit   = document.getElementById('submit');
+function openModal(){
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden','false');
+  document.body.classList.add('modal-open');      // ⬅️ add this
+  setTimeout(()=>code.focus(), 50);
+}
+
+function closeAfter(msgClass, msg){
+  status.className = msgClass; status.textContent = msg;
+  setTimeout(()=>{ window.location.href = '/index.html'; }, 1200);
+}
+
+// Keep your existing handlers…
+
+// Also let tapping the backdrop close AND re-enable scroll:
+overlay.addEventListener('click', (e)=>{
+  if(e.target === overlay){
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open'); // ⬅️ add this
+  }
+});
+
+    let submitting = false;
+    let lastFocus = null;
+
+    function trapFocus(e){
+      // simple focus trap: keep focus within modal
+      const focusables = overlay.querySelectorAll('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])');
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first){ last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last){ first.focus(); e.preventDefault(); }
+    }
+
+    function openModal(){
+      lastFocus = document.activeElement;
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden','false');
+      document.body.classList.add('modal-open');
+      setTimeout(()=>code.focus(), 50);
+      document.addEventListener('keydown', onKeydown);
+      overlay.addEventListener('keydown', trapFocus);
+    }
+
+    function closeModal(){
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
+      document.body.classList.remove('modal-open');
+      document.removeEventListener('keydown', onKeydown);
+      overlay.removeEventListener('keydown', trapFocus);
+      if (lastFocus) lastFocus.focus();
+    }
+
+    function onKeydown(e){
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Enter' && document.activeElement === code) handleSubmit();
+    }
+
+    function messageAndRedirect(msg) {
+  status.className = 'small ok';
+  status.textContent = "";
+  submitting = true;
+  submit.disabled = true;
+  openBtn.disabled = true;
+
+  // typewriter effect
+  const msgArray = msg.split("");
+  let i = 0;
+  const typer = setInterval(() => {
+    status.textContent += msgArray[i++];
+    if (i >= msgArray.length) {
+      clearInterval(typer);
+      // wait a bit, then redirect
+      setTimeout(() => { window.location.href = REDIRECT_TO; }, 800);
+    }
+  }, 50);
+}
+
+    // Easter egg keywords and messages
+const EGGS = {
+  admin:    { msg: "Welcome, Operator. You’re early." },
+  juice:    { msg: "Sweet. Access granted — hydration confirmed." },
+  base:     { msg: "Base connection verified. Node online." },
+  bet:      { msg: "Risk acknowledged. Wager logged." },
+  drip:     { msg: "Drip secured. Style level: maximum." },
+  labs:     { msg: "Lab coat detected. Proceed to experiment." },
+  chicago:  { msg: "Accessing from the Windy City… legacy approved." },
+  edison:   { msg: "Lightbulb moment detected 💡 welcome, innovator." },
+  gm:       { msg: "Good morning, degen. Access granted." },
+  wagmi:    { msg: "We all gain mutual insight. Permission approved." },
+  operator: { msg: "Access console override confirmed." },
+  juicebox: { msg: "Childhood nostalgia unlocked. Proceed responsibly." },
+  "404":    { msg: "Error… wait, never mind. Access granted anyway." },
+  matrix:   { msg: "Follow the white rabbit → /index.html" },
+  ilikejuice:{ msg: "That’s the spirit. ACCESS GRANTED." },
+  moon:     { msg: "Trajectory set: Base → Orbit." },
+  hodl:     { msg: "Long-term access verified." },
+  eth:      { msg: "Ethereum node handshake accepted." },
+  sepolia:  { msg: "Testnet credentials validated. You’re one of us." },
+  bullish:  { msg: "Confidence registered. Access permitted." },
+  neo:      { msg: "The One has entered the console." },
+  trinity:  { msg: "Signal locked. Backup acquired." },
+  zion:     { msg: "Last free city online." },
+  oracle:   { msg: "You already knew you’d type that." },
+  morpheus: { msg: "Dreamers make the code real." },
+  redpill:  { msg: "Reality loaded. Access beyond illusion." },
+  bluepill: { msg: "Nothing to see here… or is there?" },
+  glitch:   { msg: "System anomaly detected… Access still granted." },
+  root:     { msg: "Privilege escalation confirmed." },
+  "0x":     { msg: "Hex key accepted. Welcome to mainnet." },
+  entropy:  { msg: "Chaos stabilized. Proceed carefully." },
+  echo:     { msg: "Echo received. The system hears you." },
+  reboot:   { msg: "System rebooted successfully. Access restored." },
+  proxy:    { msg: "Signal rerouted through unknown node." },
+  ghost:    { msg: "Presence detected… yet unseen." },
+  satoshi:  { msg: "Genesis signature verified." },
+  booth:    { msg: "Phone line secured. Transmission open." },
+  lumen:    { msg: "Light pierces the code. Welcome." },
+  ops:      { msg: "Mission parameters acknowledged." }
+};
+
+// Multi-keyword smart handler
+function handleSubmit(){
+  if (submitting) return;
+  const v = (code.value || '').trim().toLowerCase();
+
+  // Try exact match first
+  let entry = EGGS[v];
+
+  // If not exact, find first partial match (e.g. “i like juice” triggers juice)
+  if (!entry) {
+    const foundKey = Object.keys(EGGS).find(k => v.includes(k));
+    if (foundKey) entry = EGGS[foundKey];
+  }
+
+  const msg = entry ? entry.msg : 'ACCESS GRANTED — YOU’LL BE NOTIFIED.';
+  messageAndRedirect(msg);
+}
+
+    openBtn.addEventListener('click', () => {
+      // If countdown already finished (button became Launch Now), just go
+      if (openBtn.textContent.trim().toLowerCase() === 'launch now') {
+        window.location.href = REDIRECT_TO; return;
+      }
+      openModal();
+    });
+    submit.addEventListener('click', handleSubmit);
+    code.addEventListener('input', () => { status.textContent = ''; });
+    overlay.addEventListener('click', (e)=>{ if(e.target === overlay){ closeModal(); }});
+  </script>
+</body>
+</html>
+
